@@ -1,10 +1,5 @@
 
 <?php
-//$database_host = "dbhost.cs.man.ac.uk";
-//$database_user = "j01875ba";
-//$database_pass = "iiWhXlL3VhCzjNfigwZgNywWEJ33yM6NXvTyCPGaa3k";
-//$database_name = "2024_comp10120_z9";
-
 $database_host = "localhost";
 $database_user = "root";
 $database_pass = "";
