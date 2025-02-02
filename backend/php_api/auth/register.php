@@ -10,13 +10,18 @@ function registerUser($username, $password, $email) {
         return "Username already in use, please choose another one";
     }
    
-    $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (:username, :password)");
-    $stmt->execute([
+    $stmt = $pdo->prepare("INSERT INTO users (username, password, email) VALUES (:username, :password, :email)");
+    if ($stmt->execute([
         "username" => $username,
         // Hashing the password using bcrypt (this can change in the future as php updates algorithms as time goes on)
         "password" => password_hash($password, PASSWORD_DEFAULT),
         "email" => $email
-    ]);
+    ])) {
+        return "User registered successfully";
+    } 
+    else {
+        return "Error registering user";
+    };
 }
 
 function checkEmail($email) {
@@ -25,7 +30,7 @@ function checkEmail($email) {
     $result = $checkEmail->execute([
         "email" => $email
     ]);
-    return $checkEmail->rowCount() > 0;;
+    return $checkEmail->rowCount() > 0;
 }
 
 function checkUsername($username) {
