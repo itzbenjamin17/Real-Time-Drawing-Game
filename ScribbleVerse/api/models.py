@@ -21,4 +21,24 @@ def generate_code():
 # More attributes need to be added  
 class Room(models.Model):
     code = models.CharField(max_length=6, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True) 
+    host = models.CharField(max_length=50, default="")
+    num_of_rounds = models.IntegerField(default=3)
+    num_of_players = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Round(models.Model):
+    word = models.CharField(max_length=50)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    is_over = models.BooleanField(default=False)
+    round_number = models.IntegerField(default=1)
+    time_to_guess = models.IntegerField(default=60)
+    current_time = models.IntegerField(default=0)
+    current_drawer = models.ForeignKey('Player', on_delete=models.SET_NULL, null=True, blank=True)    
+
+
+class Player(models.Model):
+    score = models.IntegerField(default=0)
+    name = models.CharField(max_length=50)
+    is_drawing = models.BooleanField(default=False)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
