@@ -1,6 +1,7 @@
 import "./Leaderboard.css";
 
 function Leaderboard() {
+  // pass this in as a parameter
   const leaderboardDict = {
     Alice: 1500,
     Bob: 1200,
@@ -14,7 +15,6 @@ function Leaderboard() {
       score,
     })
   );
-
 
   return (
     <div className="leaderboard-container">
@@ -39,6 +39,15 @@ function Leaderboard() {
             ))}
         </tbody>
       </table>
+
+      <button className="button" onClick={() => console.log("Hello")}>
+        Play Again
+      </button>
+
+
+      <button className="button" onClick={() => console.log("Hello")}>
+        Return
+      </button>
     </div>
   );
 }
