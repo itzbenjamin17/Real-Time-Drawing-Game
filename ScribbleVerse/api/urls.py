@@ -25,4 +25,8 @@ urlpatterns = [
     
     # Update player score or state (e.g., is_drawing attribute)
     path('update-player/<int:pk>/', UpdatePlayer.as_view(), name='update-player'),
+
+    # Retrieve the current round in a specific room
+    path('current-round/<str:code>/', GetCurrentRound.as_view(), name='get-current-round')
+
 ]

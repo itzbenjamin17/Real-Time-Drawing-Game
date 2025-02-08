@@ -74,6 +74,22 @@ class StartRound(APIView):
             except Room.DoesNotExist:
                 return Response({"error": "Room not found"}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class GetCurrentRound(APIView):
+    def get(self, request, code):
+        try:
+            # Get the room using its code
+            room = Room.objects.get(code=code)
+            # Retrieve the latest round that is still active (i.e., not over)
+            current_round = Round.objects.filter(room=room, is_over=False).order_by("-round_number").first()
+            if current_round:
+                serializer = RoundSerializer(current_round)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "No active round"}, status=status.HTTP_404_NOT_FOUND)
+        except Room.DoesNotExist:
+            return Response({"error": "Room not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 # Retrieve all players in a specific room
 class GetPlayersInRoom(APIView):
