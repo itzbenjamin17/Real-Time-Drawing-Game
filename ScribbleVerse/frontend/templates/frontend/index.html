@@ -17,21 +17,6 @@
         </div>
     </div>
 
-    <script>
-        function playGame() {
-            let username = document.getElementById('username').value;
-            if (username) {
-                alert('Playing as ' + username);
-                // start of the game logic 
-            } else {
-                alert('Please enter a username!');
-            }
-        }
-
-        function createRoom() {
-            alert('Create Room button clicked!');
-            // room creation logic 
-        }
-    </script>
+    <script src={% static 'js/index.js'%}></script>
 </body>
 </html>
