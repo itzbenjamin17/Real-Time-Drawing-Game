@@ -1,4 +1,3 @@
-
 function goToLeaderboard() {
     const playersData = {
         "a": 120,

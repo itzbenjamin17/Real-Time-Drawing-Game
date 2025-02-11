@@ -1,5 +1,3 @@
-
-
 function renderLeaderboard() {
     const playersData = JSON.parse(localStorage.getItem('playersData'));
 
