@@ -1,0 +1,29 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="thing.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkribbleVerse</title>
+    <link rel="stylesheet" href="{% static 'css/drawing.css' %}">
+  </head>
+  <body style="background-image: linear-gradient(to right, rgb(90, 111, 253) , rgb(247, 102, 200));"> <!--Background-->
+    <!--Canvas for Guessing UI (Incomplete)-->
+    <canvas id="GuessingCanvas" width="800" height="50" style="border:10px solid #000000;" background="white" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+
+    <!--Drawing Canvas, push to draw-->
+    <canvas id="DrawingCanvas" width="800" height="500" style="border:10px solid #000000;" background="white" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+
+    <!--Canvas for Choosing Colours to draw with (Incomplete)-->
+    <canvas id="ColoursCanvas" width="800" height="50" style="border:10px solid #000000;" background="white" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+
+    <script src="{% static 'js/drawing.js'%}"></script>
+  </body>
+</html>

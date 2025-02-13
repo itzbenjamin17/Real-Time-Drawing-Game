@@ -11,9 +11,13 @@
     <div>
         <h1>ScribbleVerse</h1>
         <div class="container">
-            <input type="text" placeholder="Username" id="username">
-            <button onclick="playGame()">Play</button>
-            <button onclick="createRoom()">Create Room</button>
+            <form method="POST" action="/create-room/">
+            <!--<button onclick="createRoom()">Create Room</button>-->
+                {% csrf_token %}
+                <input type="text" placeholder="Enter your Username" name="username">
+                <button onclick="playGame()">Play</button>
+                <button onclick="createRoom()" type="submit" class="btn btn-primary">Create Room</button>
+            </form>
         </div>
     </div>
 

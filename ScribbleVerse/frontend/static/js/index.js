@@ -10,5 +10,6 @@ function playGame() {
 
 function createRoom() {
     alert('Create Room button clicked!');
-    // room creation logic 
+    // room creation logic
+    window.location.href = 'create-room';
 }

@@ -59,6 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
         customWords: customWords
       };
 
+      return fetch('/api/create-room', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
+      })
+
       localStorage.setItem('gameSettings', JSON.stringify(settings));
       alert('Settings saved!');
     };
