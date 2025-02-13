@@ -2,6 +2,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    background-image: linear-gradient(to right, rgb(90, 111, 253), rgb(247,102,200));
 }
 
 .leaderboard-container {
@@ -10,7 +11,7 @@ body {
 }
 
 .title {
-    color: black;
+    color: white;
     margin-bottom: 20px;
 }
 
@@ -18,15 +19,18 @@ body {
     border-collapse: collapse;
     margin: 0 auto;
     width: 20%;
+    background-color: white;
 }
+
 
 .leaderboard-table th, .leaderboard-table td {
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid black;
     text-align: center;
+    
 }
 
 .leaderboard-table th {
-    background-color: #4CAF50;
+    background-color: rgb(86, 199, 86);
     color: white;
 }
