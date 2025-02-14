@@ -66,7 +66,6 @@ function isInsideCircle(mouseX, mouseY) {
         colour = "blue"
     }
     else if (checkColour(mouseX - 240, mouseY - 580, 490)) {
-        console.log("thingthing")
         colour = "purple"
     }
     else if (checkColour(mouseX - 240, mouseY - 580, 580)) {
