@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
   <head>
@@ -5,6 +6,7 @@
     <link rel="icon" type="image/svg+xml" href="thing.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SkribbleVerse</title>
+    <link rel="stylesheet" href="{% static 'css/drawing.css' %}">
     <style>
       /*Puts elements in the center horizontally*/
       body {
@@ -34,6 +36,6 @@
       Your browser does not support the HTML canvas tag.
     </canvas>
 
-    <script src="src/Drawing.js"></script>
+    <script src="{% static 'js/drawing.js'%}"></script>
   </body>
 </html>
