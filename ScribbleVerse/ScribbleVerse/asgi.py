@@ -13,7 +13,7 @@ from django.core.asgi import get_asgi_application
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-from api.routing import websocket_urlpatterns
+from ScribbleVerse.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
@@ -24,4 +24,3 @@ application = ProtocolTypeRouter({
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ScribbleVerse.settings')
 
-application = get_asgi_application()
