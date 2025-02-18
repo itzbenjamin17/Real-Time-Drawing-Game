@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScribbleVerse - Report an Issue</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #4a00e0, #ff0080);
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            width: 500px;
+        }
+        h1 {
+            font-size: 48px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        input, button, textarea {
+            display: block;
+            width: 250px;
+            margin: 10px auto;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input, textarea {
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        button {
+            background: #6200ea;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #3700b3;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>ScribbleVerse</h1>
+        <div class="container">
+            <h2>Report an Issue</h2>
+            <label>Username:</label>
+            <input type="text" placeholder="Enter your username">
+            <label>Email:</label>
+            <input type="email" placeholder="Enter your email">
+            <label>Issue Type:</label>
+            <input type="text" placeholder="Describe the issue type">
+            <label>Issue Details:</label>
+            <textarea placeholder="Describe the issue"></textarea>
+            <button onclick="submitReport()">Report</button>
+        </div>
+    </div>
+
+    <script>
+        function submitReport() {
+            alert('Issue report submitted!');
+        }
+    </script>
+</body>
+</html>
