@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScribbleVerse - How To Play</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #4a00e0, #ff0080);
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            width: 500px;
+        }
+        h1 {
+            font-size: 48px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        button {
+            display: block;
+            width: 250px;
+            margin: 10px auto;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            background: #6200ea;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #3700b3;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            width: 450px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>ScribbleVerse</h1>
+        <div class="info-box">
+            <h2>How To Play</h2>
+            <p>Learn how to play the game effectively.</p>
+        </div>
+        <div class="info-box">
+            <h2>Terms of Service</h2>
+            <p>Read the terms and conditions before playing.</p>
+        </div>
+        <button onclick="goToReport()">Report an Issue</button>
+    </div>
+
+    <script>
+        function goToReport() {
+            alert('Redirecting to Report Page');
+            window.location.href = "report.html";
+        }
+    </script>
+</body>
+</html>
