@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScribbleVerse</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #4a00e0, #ff0080);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            width: 500px;
+            position: relative;
+            z-index: 10;
+        }
+        #scribbleText {
+            font-size: 48px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+        input, button {
+            display: block;
+            width: 250px;
+            margin: 10px auto;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input {
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        button {
+            background: #6200ea;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            background: #3700b3;
+            transform: scale(1.1);
+        }
+        .pencil {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: url('https://cdn-icons-png.flaticon.com/512/2337/2337741.png') no-repeat center;
+            background-size: contain;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="scribbleCanvas"></canvas>
+    <div>
+        <div class="container">
+            <h1 id="scribbleText"></h1>
+            <input type="text" placeholder="Username">
+            <button>Play</button>
+            <button>Create Room</button>
+        </div>
+    </div>
+    <div class="pencil" id="pencil"></div>
+
+    <script>
+        const canvas = document.getElementById('scribbleCanvas');
+        const ctx = canvas.getContext('2d');
+        const pencil = document.getElementById('pencil');
+        const scribbleText = document.getElementById('scribbleText');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let text = "ScribbleVerse";
+        let index = 0;
+        let x = (canvas.width / 2) - 200;
+        let y = canvas.height / 3;
+        let drawing = true;
+
+        function drawText() {
+            if (index >= text.length) {
+                drawing = false;
+                return;
+            }
+            
+            scribbleText.innerHTML += text[index];
+            let textRect = scribbleText.getBoundingClientRect();
+            pencil.style.left = `${textRect.right + 5}px`;
+            pencil.style.top = `${textRect.top}px`;
+            
+            index++;
+            if (drawing) {
+                setTimeout(drawText, 300);
+            }
+        }
+
+        drawText();
+    </script>
+</body>
+</html>
