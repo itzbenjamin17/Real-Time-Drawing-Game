@@ -1,8 +1,16 @@
+// Variables
 let mouseX = 0;
 let mouseY = 0;
 let canvasX = 0;
 let canvasY = 0;
-let colour = "black"
+let colour = "black";
+
+// Data from Back-End
+let word = "apple";
+
+// Create Guessing Canvas
+var guessingCanvas = document.getElementById("GuessingCanvas");
+var Gcnvs = guessingCanvas.getContext("2d");
 
 // Create Drawing Canvas
 var drawingCanvas = document.getElementById("DrawingCanvas");
@@ -86,6 +94,27 @@ function checkColour(mouseX, mouseY, circleX) {
     return (distance <= 30) // True if mouse is in circle
 }
 
+// Display word at Guessing Canvas
+function displayWord(word) {
+    // Get under
+    length = word.length;
+    let displayedWord = "";
+    for (let i = 0; i < length; i++) {
+        displayedWord += "_ ";
+    }
+    displayedWord = displayedWord.slice(0, -1);
+    
+    addText(Gcnvs, "50", "center", displayedWord, 400, 45)
+}
+
+// Add text to a canvas
+function addText(cnvs, size, align, text, textX, textY) {
+    cnvs.font = size + "px Arial, sans-serif";
+    cnvs.textAlign = align;
+    cnvs.fillStyle = "black";
+    cnvs.fillText(text, textX, textY);
+}
+
 // Detect when the mouse clicks on coloursCanvas
 coloursCanvas.addEventListener("click", function() { isInsideCircle(mouseX, mouseY); });
 
@@ -99,9 +128,13 @@ document.addEventListener("mousemove", function(event) {
 drawingCanvas.addEventListener("mousedown", mouseHold);
 document.addEventListener("mouseup", mouseRelease);
 
-// White Background
+// White Background for Drawing Canvas
 Dcnvs.fillStyle = "white";
 Dcnvs.fillRect(0, 0, 800, 500);
+
+// Background for Guessing Canvas
+Gcnvs.fillStyle = "#ffd296";
+Gcnvs.fillRect(0, 0, 800, 75)
 
 // Draw the colour circles to the screen
 drawCircle(40, "red")
@@ -113,3 +146,5 @@ drawCircle(490, "purple")
 drawCircle(580, "pink")
 drawCircle(670, "brown")
 drawCircle(760, "black")
+
+displayWord(word)
