@@ -12,7 +12,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 180px;
     gap: 10px;
   }
 
