@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Settings</title>
+  <!-- so that django works -->
+  <link rel="stylesheet" href="{% static 'gameSettings.css' %}">
+  <script src="{% static 'gameSettings.js' %}" defer></script>
+</head>
+<body>
+  <div class="settings-container">
+    <h1>Game Settings</h1>
+    <form id="settingsForm">
+
+      <div class="form-group">
+        <label for="currentPlayers">Current Player Count:</label>
+        <input type="number" id="currentPlayers" min="1" placeholder="Enter current player count" />
+      </div>
+
+      <div class="form-group">
+        <label for="maxPlayers">Max Player Count:</label>
+        <input type="number" id="maxPlayers" min="1" placeholder="Enter max player count" />
+      </div>
+
+      <div class="form-group">
+        <label for="rounds">Number of Rounds:</label>
+        <input type="number" id="rounds" min="1" placeholder="Enter number of rounds" />
+      </div>
+
+      <div class="form-group">
+        <label for="roundDuration">Round Duration (seconds):</label>
+        <input type="number" id="roundDuration" min="1" placeholder="Enter round duration in seconds" />
+      </div>
+
+      <div class="form-group">
+        <label for="customWordInput">Add Custom Word:</label>
+        <input type="text" id="customWordInput" placeholder="Enter a custom word" />
+        <button type="button" id="addWordBtn">Add Word</button>
+      </div>
+
+      <div class="form-group">
+        <label>Custom Words:</label>
+        <ul id="customWordsList"></ul>
+      </div>
+
+      <div class="form-group">
+        <button type="button" id="saveSettingsBtn">Save Settings</button>
+      </div>
+      
+    </form>
+  </div>
+
+  <script src="gameSettings.js"></script>
+</body>
+</html>
