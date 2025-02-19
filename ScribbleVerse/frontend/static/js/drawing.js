@@ -3,6 +3,9 @@ let mouseX = 0;
 let mouseY = 0;
 let colour = "black";
 let mode = "pencil";
+let minutes = "3";
+let tenSeconds = "0";
+let seconds = "0";
 
 // Data from Back-End
 let word = "apple";
@@ -21,6 +24,10 @@ var Bcnvs = backCanvas.getContext("2d");
 // Create Guessing Canvas
 var guessingCanvas = document.getElementById("GuessingCanvas");
 var Gcnvs = guessingCanvas.getContext("2d");
+
+// Timer Canvas
+var timerCanvas = document.getElementById("TimerCanvas");
+var TIcnvs = timerCanvas.getContext("2d");
 
 // Leaderboard Canvas
 var leaderboardCanvas = document.getElementById("LeaderboardCanvas");
@@ -66,13 +73,13 @@ function drawPixel(width, height, colour) {
     // If current mode is pencil
     if (mode == "pencil") {
         Dcnvs.fillStyle = colour;
-        Dcnvs.fillRect(mouseX - canvasX - 5, mouseY - canvasY - 5, 5, 5);
+        Dcnvs.fillRect(mouseX - canvasX - 10, mouseY - canvasY - 10, 5, 5);
     }
 
     // If current mode is eraser
     else {
         Dcnvs.fillStyle = "white";
-        Dcnvs.fillRect(mouseX - canvasX - 5, mouseY - canvasY - 5, 15, 15);
+        Dcnvs.fillRect(mouseX - canvasX - 10, mouseY - canvasY - 10, 15, 15);
     }
     Dcnvs.stroke();
 }
@@ -163,6 +170,56 @@ function toolsClick(mouseX) {
     }
 }
 
+// Update Timer
+function runTimer() {
+    // Clear Tcnvs
+    TIcnvs.clearRect(0, 0, 150, 75);
+
+    // Background
+    TIcnvs.fillStyle = "#ffd296";
+    TIcnvs.fillRect(0, 0, 150, 75);
+
+    // update timer
+    if (seconds == "0") {
+        if (tenSeconds == "0") {
+            if (minutes == "0") {
+                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+                stopTimer();
+                console.log("Time's Up! The word was: " + word)
+            }
+
+            else {
+                seconds = "9"
+                tenSeconds = "5"
+                minutes = parseInt(minutes) - 1
+                minutes = minutes.toString()
+    
+                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+            }
+        }
+
+        else {
+            seconds = "9"
+            tenSeconds = parseInt(tenSeconds) - 1
+            tenSeconds = tenSeconds.toString()
+
+            addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+        }
+    }
+
+    else {
+        seconds = parseInt(seconds) - 1
+        seconds = seconds.toString()
+
+        addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+    }
+}
+
+// Stop the timer
+function stopTimer() {
+    clearInterval(timer);
+}
+
 // Detect when the mouse clicks on coloursCanvas
 coloursCanvas.addEventListener("click", function() { isInsideCircle(mouseX, mouseY); });
 
@@ -182,6 +239,14 @@ toolsCanvas.addEventListener("mouseup", function() { toolsClick(mouseX); });
 Bcnvs.fillStyle = "#f93cff";
 Bcnvs.fillRect(0, 0, 150, 75);
 
+// Background for Guessing Canvas
+Gcnvs.fillStyle = "#ffd296";
+Gcnvs.fillRect(0, 0, 800, 75)
+
+// Background for Timer Canvas
+TIcnvs.fillStyle = "#ffd296";
+TIcnvs.fillRect(0, 0, 150, 75)
+
 // Background for Leaderboard Canvas
 Lcnvs.fillStyle = "#ffd296";
 Lcnvs.fillRect(0, 0, 150, 450)
@@ -193,10 +258,6 @@ Dcnvs.fillRect(0, 0, 800, 500);
 // Background for Chat Canvas
 CHcnvs.fillStyle = "#ffd296";
 CHcnvs.fillRect(0, 0, 150, 450)
-
-// Background for Guessing Canvas
-Gcnvs.fillStyle = "#ffd296";
-Gcnvs.fillRect(0, 0, 800, 75)
 
 // Back Button Text
 addText(Bcnvs, "40", "center", "Back", 75, 50)
@@ -222,3 +283,9 @@ drawCircle(760, "black")
 
 // Display the word at the top
 addText(Gcnvs, "50", "center", word, 400, 50)
+
+// Timer Text 
+addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+
+// Start Timer
+timer = setInterval(runTimer, 1000)
