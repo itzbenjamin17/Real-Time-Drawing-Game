@@ -1,27 +1,50 @@
 // Variables
 let mouseX = 0;
 let mouseY = 0;
-let canvasX = 0;
-let canvasY = 0;
 let colour = "black";
+let mode = "pencil";
 
 // Data from Back-End
 let word = "apple";
+
+// Images
+const pencil = new Image();
+pencil.src = "pencil.png";
+
+const eraser = new Image();
+eraser.src = "eraser.png";
+
+// Back Canvas
+var backCanvas = document.getElementById("BackCanvas");
+var Bcnvs = backCanvas.getContext("2d");
 
 // Create Guessing Canvas
 var guessingCanvas = document.getElementById("GuessingCanvas");
 var Gcnvs = guessingCanvas.getContext("2d");
 
+// Leaderboard Canvas
+var leaderboardCanvas = document.getElementById("LeaderboardCanvas");
+var Lcnvs = leaderboardCanvas.getContext("2d");
+
 // Create Drawing Canvas
 var drawingCanvas = document.getElementById("DrawingCanvas");
 var Dcnvs = drawingCanvas.getContext("2d");
+
+// Chat Canvas
+var chatCanvas = document.getElementById("ChatCanvas");
+var CHcnvs = chatCanvas.getContext("2d");
 
 // Create Colour Choosing Canvas
 var coloursCanvas = document.getElementById("ColoursCanvas");
 var Ccnvs = coloursCanvas.getContext("2d");
 
+// Tools Canvas
+var toolsCanvas = document.getElementById("ToolsCanvas");
+var Tcnvs = toolsCanvas.getContext("2d");
+
 // Keep drawing pixels at the cursor
 function mouseHold() {
+    // Run drawPixel every 10ms
     drawLoop = setInterval(drawPixel, 10, 5, 5, colour);
 }
 
@@ -30,18 +53,27 @@ function mouseRelease() {
     clearInterval(drawLoop);
 }
 
-//Update coords of canvas topleft corner
-function getCanvasCorners() {
-    let rect = drawingCanvas.getBoundingClientRect();
-    canvasX = rect.left;
-    canvasY = rect.top;
+//Get coords of canvas topleft corner
+function getCanvasCorners(canvas) {
+    let rect = canvas.getBoundingClientRect();
+    return [rect.left, rect.top]
 }
 
 // Draw pixel at mouse coords
 function drawPixel(width, height, colour) {
-    getCanvasCorners();
-    Dcnvs.fillStyle = colour;
-    Dcnvs.fillRect(mouseX - canvasX - 5, mouseY - canvasY - 5, width, height);
+    let [canvasX, canvasY] = getCanvasCorners(drawingCanvas);
+
+    // If current mode is pencil
+    if (mode == "pencil") {
+        Dcnvs.fillStyle = colour;
+        Dcnvs.fillRect(mouseX - canvasX - 5, mouseY - canvasY - 5, 5, 5);
+    }
+
+    // If current mode is eraser
+    else {
+        Dcnvs.fillStyle = "white";
+        Dcnvs.fillRect(mouseX - canvasX - 5, mouseY - canvasY - 5, 15, 15);
+    }
     Dcnvs.stroke();
 }
 
@@ -57,33 +89,33 @@ function drawCircle(circleX, colour) {
 
 // Check if click is inside the circle
 function isInsideCircle(mouseX, mouseY) {
+    let [canvasX, canvasY] = getCanvasCorners(coloursCanvas);
     // Run checkColour for each colour
-    if (checkColour(mouseX - 240, mouseY - 580, 40)) {
+    if (checkColour(mouseX - canvasX, mouseY - canvasY, 40)) {
         colour = "red"
     }
-    else if (checkColour(mouseX - 240, mouseY - 580, 130)) {
+    else if (checkColour(mouseX - canvasX, mouseY - canvasY, 130)) {
         colour = "orange"
     }
-    else if (checkColour(mouseX - 240, mouseY - 580, 220)) {
+    else if (checkColour(mouseX - canvasX, mouseY - canvasY, 220)) {
         colour = "yellow"
     }
-    else if (checkColour(mouseX - 240, mouseY - 580, 310)) {
+    else if (checkColour(mouseX - canvasX, mouseY - canvasY, 310)) {
         colour = "green"
     }
-    else if (checkColour(mouseX - 240, mouseY - 580, 400)) {
+    else if (checkColour(mouseX - canvasX, mouseY - canvasY, 400)) {
         colour = "blue"
     }
-    else if (checkColour(mouseX - 240, mouseY - 580, 490)) {
-        console.log("thingthing")
+    else if (checkColour(mouseX - canvasX, mouseY - canvasY, 490)) {
         colour = "purple"
     }
-    else if (checkColour(mouseX - 240, mouseY - 580, 580)) {
+    else if (checkColour(mouseX - canvasX, mouseY - canvasY, 580)) {
         colour = "pink"
     }
-    else if (checkColour(mouseX - 240, mouseY - 580, 670)) {
+    else if (checkColour(mouseX - canvasX, mouseY - canvasY, 670)) {
         colour = "brown"
     }
-    else if (checkColour(mouseX - 240, mouseY - 580, 760)) {
+    else if (checkColour(mouseX - canvasX, mouseY - canvasY, 760)) {
         colour = "black"
     }
 }
@@ -96,7 +128,7 @@ function checkColour(mouseX, mouseY, circleX) {
 
 // Display word at Guessing Canvas
 function displayWord(word) {
-    // Get under
+    // Get underscores for each letter in word
     length = word.length;
     let displayedWord = "";
     for (let i = 0; i < length; i++) {
@@ -115,6 +147,22 @@ function addText(cnvs, size, align, text, textX, textY) {
     cnvs.fillText(text, textX, textY);
 }
 
+// Runs when the Back Button is pressed (incomplete)
+function back() {
+    console.log("Back Button")
+}
+
+// Runs when the pencil or eraser image is clicked
+function toolsClick(mouseX) {
+    let [canvasX, canvasY] = getCanvasCorners(toolsCanvas);
+    if (mouseX - canvasX <= 75) {
+        mode = "pencil"
+    }
+    else {
+        mode = "eraser"
+    }
+}
+
 // Detect when the mouse clicks on coloursCanvas
 coloursCanvas.addEventListener("click", function() { isInsideCircle(mouseX, mouseY); });
 
@@ -125,16 +173,41 @@ document.addEventListener("mousemove", function(event) {
 });
 
 // Detect when mouse is held down or released
+backCanvas.addEventListener("mouseup", back);
 drawingCanvas.addEventListener("mousedown", mouseHold);
 document.addEventListener("mouseup", mouseRelease);
+toolsCanvas.addEventListener("mouseup", function() { toolsClick(mouseX); });
+
+// Background for Back Canvas
+Bcnvs.fillStyle = "#f93cff";
+Bcnvs.fillRect(0, 0, 150, 75);
+
+// Background for Leaderboard Canvas
+Lcnvs.fillStyle = "#ffd296";
+Lcnvs.fillRect(0, 0, 150, 450)
 
 // White Background for Drawing Canvas
 Dcnvs.fillStyle = "white";
 Dcnvs.fillRect(0, 0, 800, 500);
 
+// Background for Chat Canvas
+CHcnvs.fillStyle = "#ffd296";
+CHcnvs.fillRect(0, 0, 150, 450)
+
 // Background for Guessing Canvas
 Gcnvs.fillStyle = "#ffd296";
 Gcnvs.fillRect(0, 0, 800, 75)
+
+// Back Button Text
+addText(Bcnvs, "40", "center", "Back", 75, 50)
+
+// When these images load, put them on the screen
+pencil.onload = function () {
+    Tcnvs.drawImage(pencil, 0, 0, 75, 75);
+};
+eraser.onload = function () {
+    Tcnvs.drawImage(eraser, 75, 0, 75, 75);
+};
 
 // Draw the colour circles to the screen
 drawCircle(40, "red")
@@ -147,4 +220,5 @@ drawCircle(580, "pink")
 drawCircle(670, "brown")
 drawCircle(760, "black")
 
-displayWord(word)
+// Display the word at the top
+addText(Gcnvs, "50", "center", word, 400, 50)
