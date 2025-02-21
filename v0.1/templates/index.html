@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScribbleVerse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div>
+        <h1>ScribbleVerse</h1>
+        <div class="container">
+            <form action="{{ url_for('index') }}" method="POST">
+                <input type="text" placeholder="Enter your Username" name="name" value="{{name}}">
+                <input type="text" placeholder="Enter the Room Code" name="code" value="{{code}}">
+                <button type="submit" name="join" value="true">Join Room</button>
+            </form>
+            <form action="{{ url_for('create_room') }}" method="POST">
+                <button type="submit" class="btn btn-primary">Create Room</button>
+            </form>
+        </div>
+    </div>
+
+    {% if error %}
+    <ul>
+        <li>{{error}}</li>
+    </ul>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+</html>

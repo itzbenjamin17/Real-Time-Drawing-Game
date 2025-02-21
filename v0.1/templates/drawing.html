@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="thing.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScribbleVerse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/drawing.css') }}">
+  </head>
+  <body style="background-image: linear-gradient(to right, rgb(90, 111, 253) , rgb(247, 102, 200));"> <!--Background-->
+    
+    <!--Top Row-->
+    <div class="top">
+
+    <!--Canvas for Back Button (Incomplete)-->
+    <canvas id="BackCanvas" width="150" height="75" style="border:10px solid #000000;" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+    
+    <!--Canvas for Guessing UI (Incomplete)-->
+    <canvas id="GuessingCanvas" width="800" height="75" style="border:10px solid #000000;" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+    </div>
+
+    <!--Middle Row-->
+    <div class="middle">
+
+    <!--Leaderboard Canvas (Incomplete)-->
+    <canvas id="LeaderboardCanvas" width="150" height="450" style="border:10px solid #000000;" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+
+    <!--Drawing Canvas, push to draw-->
+    <canvas id="DrawingCanvas" width="800" height="450" style="border:10px solid #000000;" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+
+    <!--Chat Canvas (Incomplete)-->
+    <canvas id="ChatCanvas" width="150" height="450" style="border:10px solid #000000;" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+    </div>
+    
+    <!--Bottom Row-->
+    <div class="bottom">
+
+    <!--Canvas for Choosing Colours to draw with-->
+    <canvas id="ColoursCanvas" width="800" height="75" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+
+    <!--Canvas for Pencil and Eraser (Incomplete)-->
+    <canvas id="ToolsCanvas" width="150" height="75" >
+      Your browser does not support the HTML canvas tag.
+    </canvas>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/drawing.js') }}"></script>
+  </body>
+</html>
