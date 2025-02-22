@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScribbleVerse</title>
+    <link rel="stylesheet" href="landing_page_css.css">
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <h1 class="title">ScribbleVerse</h1>
+        <div class="login-box">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter your username">
+            
+            <button class="play-btn" onclick="validateUsername()">Play</button>
+            <button class="create-room-btn">Create Room</button>
+        </div>
+    </div>
+
+    <script>
+        function validateUsername() {
+            let username = document.getElementById("username").value;
+            let inputField = document.getElementById("username");
+
+            if (username.trim() === "") {
+                inputField.classList.add("shake");
+                setTimeout(() => {
+                    inputField.classList.remove("shake");
+                }, 500);
+            } else {
+                alert("Welcome to ScribbleVerse, " + username + "!");
+            }
+        }
+    </script>
+</body>
+</html>
