@@ -15,23 +15,69 @@
             <label for="username">Username</label>
             <input type="text" id="username" placeholder="Enter your username">
             
-            <button class="play-btn" onclick="validateUsername()">Play</button>
-            <button class="create-room-btn">Create Room</button>
+            <label for="roomCode">Room Code (Optional)</label>
+            <input type="text" id="roomCode" placeholder="Enter room code">
+
+            <button class="play-btn" onclick="joinRoom()">Join Room</button>
+            <button class="create-room-btn" onclick="createRoom()">Create Room</button>
         </div>
     </div>
 
     <script>
-        function validateUsername() {
-            let username = document.getElementById("username").value;
-            let inputField = document.getElementById("username");
+        async function joinRoom() {
+            let username = document.getElementById("username").value.trim();
+            let roomCode = document.getElementById("roomCode").value.trim();
+            
+            if (!username) {
+                alert("Please enter a username!");
+                return;
+            }
 
-            if (username.trim() === "") {
-                inputField.classList.add("shake");
-                setTimeout(() => {
-                    inputField.classList.remove("shake");
-                }, 500);
-            } else {
-                alert("Welcome to ScribbleVerse, " + username + "!");
+            if (!roomCode) {
+                alert("Please enter a room code or create a new room!");
+                return;
+            }
+
+            try {
+                let response = await fetch(`/api/validate-room-code/${roomCode}/`);
+                let data = await response.json();
+
+                if (response.ok && data.valid) {
+                    window.location.href = `lobby.html?room=${roomCode}&username=${username}`;
+                } else {
+                    alert("Invalid room code. Try again.");
+                }
+            } catch (error) {
+                console.error("Error validating room:", error);
+                alert("Server error. Please try again later.");
+            }
+        }
+
+        async function createRoom() {
+            let username = document.getElementById("username").value.trim();
+
+            if (!username) {
+                alert("Please enter a username!");
+                return;
+            }
+
+            try {
+                let response = await fetch("/api/create-room/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: username })
+                });
+
+                let data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = `lobby.html?room=${data.roomId}&username=${username}`;
+                } else {
+                    alert("Error creating room. Try again later.");
+                }
+            } catch (error) {
+                console.error("Error creating room:", error);
+                alert("Server error. Please try again later.");
             }
         }
     </script>
