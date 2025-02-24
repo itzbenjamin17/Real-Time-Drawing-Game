@@ -3,11 +3,9 @@
 __pycache__/
 db.sqlite3
 
-# Node.js-related files
-node_modules/
 
 # Virtual environment folder
-venv/
+myenv/
 
 # IDE-specific files
 .vscode/
