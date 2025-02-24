@@ -1,4 +1,5 @@
 # Use this to run the server:
+# 'python init_db.py' to create the database (only if there is no instance folder)
 # flask --app main.py run --host=0.0.0.0 --port=5000
 
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
