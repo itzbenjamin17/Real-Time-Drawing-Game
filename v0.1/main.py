@@ -53,6 +53,9 @@ def index():
         if join != False and not code:
             return render_template("index.html", error="Please enter a room code.", code=code, name=name)
         
+        if create != False:
+            return redirect(url_for("create_room"))
+        
         if code not in rooms:
             return render_template("index.html", error="Room does not exist.", code=code, name=name)
         
@@ -98,19 +101,19 @@ def room():
 def create_room():
     print("Session in create_room():", session)
     name = session.get("name")
-    print(name)
     if not name:
         return redirect(url_for("index"))
 
-    if request.method == "POST":
-        room = generate_unique_code(4)
-        rooms[room] = {
-            "members": 0,
-            "messages": []
-        }
-        session["room"] = room
+    room = generate_unique_code(4)
+    rooms[room] = {
+        "members": 0,
+        "messages": []
+    }
+    session["room"] = room
 
-        return redirect(url_for("room"))
+    if request.method == "POST":
+        rooms[room]["maxPlayers"] = request.form.get("maxPlayers")
+        print(rooms[room]["maxPlayers"])
 
     return render_template("create room.html", code=room, messages=rooms[room]["messages"])
 
