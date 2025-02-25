@@ -109,8 +109,8 @@ form button:hover {
 }
 
 /* Button Styling */
-button {
-    width: 100%;
+form button {
+    width: 80%; /* Adjust width to match input fields */
     padding: 12px;
     margin-top: 10px;
     font-size: 1.1rem;
@@ -121,24 +121,30 @@ button {
     transition: all 0.3s ease;
 }
 
-/* Play Button */
-.play-btn {
-    background-color: #6a11cb;
+/* Join Room Button */
+form button[name="join"] {
+    background-color: #6a11cb; /* Purple gradient color */
     color: white;
     box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
 }
 
 /* Create Room Button */
-.create-room-btn {
-    background-color: #ff6bcb;
+form button[name="create"] {
+    background-color: #ff6bcb; /* Pink gradient color */
     color: white;
     box-shadow: 0 4px 10px rgba(255, 107, 203, 0.3);
 }
 
 /* Button Hover Effects */
-button:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+form button:hover {
+    transform: scale(1.05); /* Slight scaling effect */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.6); /* Glow effect */
+}
+
+/* Button Active (Click) Effect */
+form button:active {
+    transform: scale(0.95); /* Slight shrink effect */
+    box-shadow: none; /* Remove glow on click */
 }
 
 /* Input Shake Effect for Invalid Entry */
