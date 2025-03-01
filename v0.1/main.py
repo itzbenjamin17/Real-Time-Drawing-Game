@@ -266,8 +266,27 @@ def create_room():
     session["room"] = room
 
     if request.method == "POST":
-        rooms[room]["maxPlayers"] = request.form.get("maxPlayers")
-        print(rooms[room]["maxPlayers"])
+        try:
+            maxPlayers = request.form.get("maxPlayers")
+            maxPlayers = int(maxPlayers)
+            rooms[room]["maxPlayers"] = str(maxPlayers)
+        except:
+            rooms[room]["maxPlayers"] = '10'
+        try:
+            rounds = request.form.get("rounds")
+            rounds = int(rounds)
+            rooms[room]["rounds"] = str(rounds)
+        except:
+            rooms[room]["rounds"] = '5'
+        try:
+            roundDuration = request.form.get("roundDuration")
+            roundDuration = int(roundDuration)
+            rooms[room]["roundDuration"] = str(roundDuration)
+        except:
+            rooms[room]["roundDuration"] = '60'
+        rooms[room]["customWordsList"] = request.form.get("customWords")
+        print(rooms[room])
+        return jsonify({'status': 'success', 'room': room})
 
     return render_template("create room.html", code=room, messages=rooms[room]["messages"])
 

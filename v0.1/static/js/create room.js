@@ -70,4 +70,24 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('gameSettings', JSON.stringify(settings));
       alert('Settings saved!');
     };
+
+    document.getElementById("roomBtn").addEventListener("click", function () {
+      const maxPlayers = maxPlayersInput.value;
+      const rounds = roundsInput.value;
+      const roundDuration = roundDurationInput.value;
+      $.ajax({
+        url: '/create-room',
+        type: 'POST',
+        data: {
+          maxPlayers: maxPlayers,
+          rounds: rounds,
+          roundDuration: roundDuration,
+          customWords: JSON.stringify(customWords)
+        },
+        success: function(response) {
+          const roomCode = response.room;
+          window.location.href = `/room?code=${roomCode}`;
+        }
+      });
+    })
 });
