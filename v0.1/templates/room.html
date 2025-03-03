@@ -1,16 +1,45 @@
 {% extends 'base.html' %} {% block content %}
-<div class="message-box">
-    <h2>Chat Room: {{code}}</h2>
-    <div class="messages" id="messages"></div>
-    <div class="inputs">
-        <input type="text" rows="3" placeholder="Message" name="message" id="message"/>
-        <button type="button" name="send" id="send-btn" onClick="sendMessage()">Send</button>
+<div class="player-list">
+    <h3>Players</h3>
+    <ul id="players"></ul>
+</div>
+<div class="room-container">
+    <div class="message-box">
+        <h2>Chat Room: {{code}}</h2>
+        <div class="messages" id="messages"></div>
+        <div class="inputs">
+            <input type="text" rows="3" placeholder="Message" name="message" id="message"/>
+            <button type="button" name="send" id="send-btn" onClick="sendMessage()">Send</button>
+        </div>
     </div>
 </div>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/room.css') }}">
 <script type="text/javascript">
     var socketio = io();
 
-    const messages = document.getElementById("messages")
+    const messages = document.getElementById("messages");
+    const playersList = document.getElementById("players");
+
+    let players = ["p1", "p2", "p3"];
+
+    const updatePlayerList = () => {
+        playersList.innerHTML = "";
+        players.forEach(player => {
+            const li = document.createElement("li");
+            li.textContent = player;
+            playersList.appendChild(li);
+        });
+    };
+
+    const addPlayer = (player) => {
+        players.push(player);
+        updatePlayerList();
+    };
+
+    const deletePlayer = (player) => {
+        players = players.filter(p => p !== player);
+        updatePlayerList();
+    };
 
     const createMessage = (name, msg) => {
         const content = `
@@ -35,6 +64,11 @@
         socketio.emit("message", {data: message.value});
         message.value = "";
     };
+
+    
+
+    updatePlayerList();
+    addPlayer("johan")
 
 </script>
 {% for msg in messages %}
