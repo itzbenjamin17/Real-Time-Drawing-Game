@@ -213,9 +213,6 @@ def index():
         if code not in rooms:
             return render_template("index.html", error="Room does not exist.", code=code, name=name)
         
-        # Semi-permanent way of storing user information without creating accounts.
-
-
         print("After setting session:", session)
 
         return redirect(url_for("room"))
@@ -294,6 +291,10 @@ def create_room():
 def join_room(room):
     return render_template("room.html", code=room, messages=rooms[room]["messages"])
 
+@app.route("/game", methods=["GET", "POST"])
+def game():
+    return render_template("drawing.html")
+
 @socketio.on("message")
 def message(data):
     room = session.get("room")
@@ -308,7 +309,7 @@ def message(data):
     print("Content:", content)
     print("Messages:", rooms[room]["messages"])
 
-    send(content, to=room)
+    socketio.emit("message", content)
     rooms[room]["messages"].append(content)
     print(f"{session.get('name')} said: {data['data']}")
 
