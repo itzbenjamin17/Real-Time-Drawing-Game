@@ -232,7 +232,8 @@ def room():
             room = generate_unique_code(4)
             rooms[room] = {
                 "members": 0,
-                "messages": []
+                "messages": [],
+                "players": []
             }
         session["room"] = room
 
@@ -245,6 +246,18 @@ def room():
         print(room in rooms)
         print("Room is missing.")
         return redirect(url_for("index"))
+    
+    if 'players' not in rooms[room]:
+        rooms[room]["players"] = []
+
+    if name not in rooms[room]["players"]:
+        rooms[room]["players"].append(name)
+
+    rooms[room]["members"] += 1
+    
+    print(f"Emitting players list to room {room}: {rooms[room]['players']}")
+    socketio.emit("username", ["Player 1", "Player 2"], room=room)
+    socketio.emit("username", rooms[room]["players"], room=room)
 
     return render_template("room.html", code=room, messages=rooms[room]["messages"])
 
@@ -307,10 +320,10 @@ def message(data):
     }
 
     print("Content:", content)
-    print("Messages:", rooms[room]["messages"])
 
     socketio.emit("message", content)
     rooms[room]["messages"].append(content)
+    print("Messages:", rooms[room]["messages"])
     print(f"{session.get('name')} said: {data['data']}")
 
 @socketio.on("connect")
