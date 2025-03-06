@@ -176,6 +176,7 @@ api.add_resource(GetRoom, '/api/get-room/<string:code>/')
 api.add_resource(AddPlayer, '/api/add-player/')
 api.add_resource(GetPlayersInRoom, '/api/get-players-in-room/<string:room_code>/')
 
+# ----------------- Routes ----------------- #
 
 @app.route("/", methods = ["POST", "GET"])
 def index():
@@ -232,11 +233,10 @@ def room():
             room = generate_unique_code(4)
             rooms[room] = {
                 "members": 0,
-                "messages": []
+                "messages": [],
+                "players": []
             }
         session["room"] = room
-
-    room = session.get("room")
 
     room = session.get("room")
     if room is None or session.get("name") is None or room not in rooms:
@@ -245,8 +245,24 @@ def room():
         print(room in rooms)
         print("Room is missing.")
         return redirect(url_for("index"))
+    
+    if 'players' not in rooms[room]:
+        rooms[room]["players"] = []
 
-    return render_template("room.html", code=room, messages=rooms[room]["messages"])
+    if name not in rooms[room]["players"]:
+        rooms[room]["players"].append(name)
+
+    rooms[room]["members"] += 1
+    
+    print(f"Emitting players list to room {room}: {rooms[room]['players']}")
+    socketio.emit("username", ["Player 1", "Player 2"], room=room)
+    socketio.emit("username", rooms[room]["players"], room=room)
+
+    host = rooms[room]["players"][0] == name
+    print(f"Host: {host}")
+    print(f"Players: {rooms[room]['players']}")
+
+    return render_template("room.html", code=room, messages=rooms[room]["messages"], host=host)
 
 @app.route("/create-room", methods=["GET", "POST"])
 def create_room():
@@ -295,6 +311,16 @@ def join_room(room):
 def game():
     return render_template("drawing.html")
 
+@app.route("/leaderboard", methods=["GET", "POST"])
+def leaderboard():
+    return render_template("leaderboard.html")
+
+@app.route("/report", methods=["GET", "POST"])
+def report():
+    return render_template("report.html")
+
+# ----------------- Real Time Connection ----------------- #
+
 @socketio.on("message")
 def message(data):
     room = session.get("room")
@@ -307,10 +333,10 @@ def message(data):
     }
 
     print("Content:", content)
-    print("Messages:", rooms[room]["messages"])
 
     socketio.emit("message", content)
     rooms[room]["messages"].append(content)
+    print("Messages:", rooms[room]["messages"])
     print(f"{session.get('name')} said: {data['data']}")
 
 @socketio.on("connect")
