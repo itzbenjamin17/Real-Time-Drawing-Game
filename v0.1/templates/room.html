@@ -20,6 +20,13 @@
         </div>
     </div>
 </div>
+
+{% if host %}
+    <form action="{{ url_for('game') }}" method="POST">
+        <button type="submit" id="startGame">Start Game</button>
+    </form>
+{% endif %}
+
 <link rel="stylesheet" href="{{ url_for('static', filename='css/room.css') }}">
 <script type="text/javascript">
     var socketio = io();
@@ -93,7 +100,7 @@
     document.getElementById("send-btn").addEventListener("click", sendMessage);
     document.getElementById("message").addEventListener("keypress", function(event) {
         if (event.key === "Enter") sendMessage();
-    });    
+    });
 
     // updatePlayerList();
     // addPlayer("johan")
