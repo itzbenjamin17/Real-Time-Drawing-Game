@@ -1,4 +1,11 @@
 {% extends 'base.html' %} {% block content %}
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+    crossorigin="anonymous"
+></script>
+
 <div class="player-list">
     <h3>Players</h3>
     <ul id="players"></ul>
@@ -20,9 +27,18 @@
     const messages = document.getElementById("messages");
     const playersList = document.getElementById("players");
 
-    let players = ["p1", "p2", "p3"];
+    socketio.on("connect", () => {
+        console.log("Socket Connected!");
+    });
+
+    socketio.on("error", (error) => {
+        console.log("SocketIO Error:", error);
+    });
+
+    let players = [];
 
     const updatePlayerList = () => {
+        console.log("Updating player list...")
         playersList.innerHTML = "";
         players.forEach(player => {
             const li = document.createElement("li");
@@ -30,6 +46,12 @@
             playersList.appendChild(li);
         });
     };
+
+    socketio.on("username", (updatedPlayers) => {
+        console.log("Players:", updatedPlayers)
+        players = updatedPlayers;
+        updatePlayerList();
+    });
 
     const addPlayer = (player) => {
         players.push(player);
@@ -52,11 +74,8 @@
         </div>
         `;
         messages.innerHTML += content;
+        messages.scrollTop = messages.scrollHeight;
     };
-
-    socketio.on("message", (data) => {
-        createMessage(data.name, data.message);
-    });
 
     const sendMessage = () => {
         const message = document.getElementById("message");
@@ -65,10 +84,19 @@
         message.value = "";
     };
 
-    
+    socketio.on("message", (data) => {
+        console.log("Received Message:", data);
+        createMessage(data.name, data.message);
+        console.log("Still connected...")
+    });
 
-    updatePlayerList();
-    addPlayer("johan")
+    document.getElementById("send-btn").addEventListener("click", sendMessage);
+    document.getElementById("message").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") sendMessage();
+    });    
+
+    // updatePlayerList();
+    // addPlayer("johan")
 
 </script>
 {% for msg in messages %}
