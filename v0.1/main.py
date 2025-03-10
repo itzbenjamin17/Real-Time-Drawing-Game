@@ -205,9 +205,16 @@ def index():
         if not name:
             return render_template("index.html", error="Please enter a name.", code=code, name=name)
         
-        if join != False and not code:
-            return render_template("index.html", error="Please enter a room code.", code=code, name=name)
-        
+        if join != False:
+            if not code:#and not code:
+                return render_template("index.html", error="Please enter a room code.", code=code, name=name)
+            
+            if rooms[room]["members"] > rooms[room]["maxPlayers"]:
+                return render_template("index.html", error="Room is full", code=code, name=name)
+            
+            if name in rooms[room]["players"]:
+                return render_template("index.html", error="Username is already taken", code=code, name=name)
+                
         if create != False:
             return redirect(url_for("create_room"))
         
@@ -282,21 +289,21 @@ def create_room():
         try:
             maxPlayers = request.form.get("maxPlayers")
             maxPlayers = int(maxPlayers)
-            rooms[room]["maxPlayers"] = str(maxPlayers)
+            rooms[room]["maxPlayers"] = maxPlayers
         except:
-            rooms[room]["maxPlayers"] = '10'
+            rooms[room]["maxPlayers"] = 10
         try:
             rounds = request.form.get("rounds")
             rounds = int(rounds)
-            rooms[room]["rounds"] = str(rounds)
+            rooms[room]["rounds"] = rounds
         except:
-            rooms[room]["rounds"] = '5'
+            rooms[room]["rounds"] = 5
         try:
             roundDuration = request.form.get("roundDuration")
             roundDuration = int(roundDuration)
-            rooms[room]["roundDuration"] = str(roundDuration)
+            rooms[room]["roundDuration"] = roundDuration
         except:
-            rooms[room]["roundDuration"] = '60'
+            rooms[room]["roundDuration"] = 60
         rooms[room]["customWordsList"] = request.form.get("customWords")
         print(rooms[room])
         return jsonify({'status': 'success', 'room': room})
