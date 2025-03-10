@@ -339,6 +339,10 @@ def message(data):
     print("Messages:", rooms[room]["messages"])
     print(f"{session.get('name')} said: {data['data']}")
 
+@socketio.on("start")
+def startGame():
+    socketio.emit("start")
+
 @socketio.on("connect")
 def connect(auth):
     room = session.get("room")

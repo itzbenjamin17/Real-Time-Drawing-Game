@@ -22,9 +22,7 @@
 </div>
 
 {% if host %}
-    <form action="{{ url_for('game') }}" method="POST">
-        <button type="submit" id="startGame">Start Game</button>
-    </form>
+    <button type="submit" id="startGame" onClick="startGame()">Start Game</button>
 {% endif %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/room.css') }}">
@@ -90,6 +88,14 @@
         socketio.emit("message", {data: message.value});
         message.value = "";
     };
+
+    const startGame = () => {
+        socketio.emit("start");
+    }
+
+    socketio.on("start", () => {
+        window.location.href = "/game";
+    });
 
     socketio.on("message", (data) => {
         console.log("Received Message:", data);
