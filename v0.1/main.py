@@ -262,8 +262,7 @@ def room():
     rooms[room]["members"] += 1
     
     print(f"Emitting players list to room {room}: {rooms[room]['players']}")
-    socketio.emit("username", ["Player 1", "Player 2"], room=room)
-    socketio.emit("username", rooms[room]["players"], room=room)
+    socketio.emit("username", rooms[room]["players"])
 
     host = rooms[room]["players"][0] == name
     print(f"Host: {host}")
@@ -362,8 +361,25 @@ def connect(auth):
     
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
+
+    if name not in rooms[room]["players"]:
+        rooms[room]["players"].append(name)
+
     rooms[room]["members"] += 1
     print(f"{name} joined room {room}")
+
+    socketio.emit("username", rooms[room]["players"])
+
+@socketio.on("new_round")
+def new_round(data):
+    room = data["room"]
+    players = rooms[room]["players"]
+    current_drawer = data["current_drawer"]
+
+    next_index = (players.index(current_drawer) + 1) % len(players)
+    next_drawer = players[next_index]
+
+    socketio.emit("new_drawer", {"drawer": next_drawer}, room=room)
 
 @socketio.on("disconnect")
 def disconnect():
@@ -371,7 +387,8 @@ def disconnect():
     name = session.get("name")
     leave_room(room)
 
-    if room in rooms:
+    if room in rooms and name in rooms[room]["players"]:
+        rooms[room]["players"].remove(name)
         rooms[room]["members"] -= 1
         if rooms[room]["members"] <= 0:
             del rooms[room]
@@ -379,5 +396,11 @@ def disconnect():
     send({"name": name, "message": "has left the room"}, to=room)
     print(f"{name} has left the room {room}")
 
+    socketio.emit("update_players", rooms[room]["players"])
+
 if __name__ == "__main__":
     socketio.run(app, debug = True)
+
+# Use this to run the server:
+# python init_db.py (if there is no instance folder)
+# flask --app main.py run --host=0.0.0.0 --port=5000
