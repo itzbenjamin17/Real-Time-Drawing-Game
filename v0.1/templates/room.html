@@ -40,10 +40,9 @@
         console.log("SocketIO Error:", error);
     });
 
-    let players = [];
-
     const updatePlayerList = () => {
-        console.log("Updating player list...")
+        console.log("Updating player list...");
+        console.log("Current Players:", players);
         playersList.innerHTML = "";
         players.forEach(player => {
             const li = document.createElement("li");
@@ -53,20 +52,17 @@
     };
 
     socketio.on("username", (updatedPlayers) => {
-        console.log("Players:", updatedPlayers)
+        console.log("New Player:", updatedPlayers);
         players = updatedPlayers;
+        console.log("Current Players:", players);
         updatePlayerList();
     });
 
-    const addPlayer = (player) => {
-        players.push(player);
+    socketio.on("update_players", (updatedPlayers) => {
+        console.log("A player left. New Player List:", updatedPlayers);
+        players = updatedPlayers;
         updatePlayerList();
-    };
-
-    const deletePlayer = (player) => {
-        players = players.filter(p => p !== player);
-        updatePlayerList();
-    };
+    });
 
     const createMessage = (name, msg) => {
         const content = `
@@ -91,7 +87,7 @@
 
     const startGame = () => {
         socketio.emit("start");
-    }
+    };
 
     socketio.on("start", () => {
         window.location.href = "/game";
@@ -107,10 +103,7 @@
     document.getElementById("message").addEventListener("keypress", function(event) {
         if (event.key === "Enter") sendMessage();
     });
-
-    // updatePlayerList();
-    // addPlayer("johan")
-
+    
 </script>
 {% for msg in messages %}
     <script type="text/javascript">
