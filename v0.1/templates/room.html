@@ -89,8 +89,8 @@
         socketio.emit("start");
     };
 
-    socketio.on("start", () => {
-        window.location.href = "/game";
+    socketio.on('redirect', (url) => {
+        window.location.href = url;
     });
 
     socketio.on("message", (data) => {

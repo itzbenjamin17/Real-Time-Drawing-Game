@@ -338,3 +338,9 @@ addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
 
 // Start Timer
 timer = setInterval(runTimer, 1000);
+
+var socket = io();
+
+socket.on('redirect', (url) => {
+    window.location.href = url;
+});

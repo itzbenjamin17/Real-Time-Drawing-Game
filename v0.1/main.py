@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import random
 from string import ascii_uppercase
+import json
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "test"
@@ -255,6 +256,7 @@ def room():
     
     if 'players' not in rooms[room]:
         rooms[room]["players"] = []
+        rooms[room]["sid_map"] = {}
 
     if name not in rooms[room]["players"]:
         rooms[room]["players"].append(name)
@@ -303,7 +305,10 @@ def create_room():
             rooms[room]["roundDuration"] = roundDuration
         except:
             rooms[room]["roundDuration"] = 60
-        rooms[room]["customWordsList"] = request.form.get("customWords")
+        defaultWords = ['word1', 'word2', 'word3']
+        customWords = json.loads(request.form.get("customWords"))
+        defaultWords.extend(customWords)
+        rooms[room]['wordList'] = defaultWords
         print(rooms[room])
         return jsonify({'status': 'success', 'room': room})
 
@@ -316,6 +321,10 @@ def join_room(room):
 @app.route("/game", methods=["GET", "POST"])
 def game():
     return render_template("drawing.html")
+
+@app.route("/guess", methods=["GET", "POST"])
+def guess():
+    return render_template("Guessing.html")
 
 @app.route("/leaderboard", methods=["GET", "POST"])
 def leaderboard():
@@ -347,7 +356,14 @@ def message(data):
 
 @socketio.on("start")
 def startGame():
-    socketio.emit("start")
+    room = session.get('room')
+    for sid, player in rooms[room]['sid_map'].items():
+        if player == rooms[room]['players'][0]:
+            print(True)
+            socketio.emit('redirect', '/game', room=sid)
+        else:
+            print(False)
+            socketio.emit('redirect', '/guess', room=sid)
 
 @socketio.on("connect")
 def connect(auth):
@@ -364,6 +380,7 @@ def connect(auth):
 
     if name not in rooms[room]["players"]:
         rooms[room]["players"].append(name)
+    rooms[room]["sid_map"][request.sid] = name
 
     rooms[room]["members"] += 1
     print(f"{name} joined room {room}")
@@ -379,7 +396,11 @@ def new_round(data):
     next_index = (players.index(current_drawer) + 1) % len(players)
     next_drawer = players[next_index]
 
-    socketio.emit("new_drawer", {"drawer": next_drawer}, room=room)
+    for sid, player in rooms[room]['sid_map'].items():
+        if player == next_drawer:
+            socketio.emit('redirect', '/game', room=sid)
+        else:
+            socketio.emit('redirect', '/guess', room=sid)
 
 @socketio.on("disconnect")
 def disconnect():
