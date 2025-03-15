@@ -4,15 +4,19 @@
 
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import random
+import base64
 from string import ascii_uppercase
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "test"
+app.config["SESSION_TYPE"] = "filesystem"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+Session(app)
 
 socketio = SocketIO(app)
 api = Api(app)
@@ -176,6 +180,7 @@ api.add_resource(GetRoom, '/api/get-room/<string:code>/')
 api.add_resource(AddPlayer, '/api/add-player/')
 api.add_resource(GetPlayersInRoom, '/api/get-players-in-room/<string:room_code>/')
 
+# ----------------- Routes ----------------- #
 
 @app.route("/", methods = ["POST", "GET"])
 def index():
@@ -204,9 +209,16 @@ def index():
         if not name:
             return render_template("index.html", error="Please enter a name.", code=code, name=name)
         
-        if join != False and not code:
-            return render_template("index.html", error="Please enter a room code.", code=code, name=name)
-        
+        if join != False:
+            if not code:#and not code:
+                return render_template("index.html", error="Please enter a room code.", code=code, name=name)
+            
+            if rooms[room]["members"] > rooms[room]["maxPlayers"]:
+                return render_template("index.html", error="Room is full", code=code, name=name)
+            
+            if name in rooms[room]["players"]:
+                return render_template("index.html", error="Username is already taken", code=code, name=name)
+                
         if create != False:
             return redirect(url_for("create_room"))
         
@@ -238,8 +250,6 @@ def room():
         session["room"] = room
 
     room = session.get("room")
-
-    room = session.get("room")
     if room is None or session.get("name") is None or room not in rooms:
         print(room)
         print(session.get("name"))
@@ -256,10 +266,13 @@ def room():
     rooms[room]["members"] += 1
     
     print(f"Emitting players list to room {room}: {rooms[room]['players']}")
-    socketio.emit("username", ["Player 1", "Player 2"], room=room)
-    socketio.emit("username", rooms[room]["players"], room=room)
+    socketio.emit("username", rooms[room]["players"])
 
-    return render_template("room.html", code=room, messages=rooms[room]["messages"])
+    host = rooms[room]["players"][0] == name
+    print(f"Host: {host}")
+    print(f"Players: {rooms[room]['players']}")
+
+    return render_template("room.html", code=room, messages=rooms[room]["messages"], host=host)
 
 @app.route("/create-room", methods=["GET", "POST"])
 def create_room():
@@ -279,21 +292,21 @@ def create_room():
         try:
             maxPlayers = request.form.get("maxPlayers")
             maxPlayers = int(maxPlayers)
-            rooms[room]["maxPlayers"] = str(maxPlayers)
+            rooms[room]["maxPlayers"] = maxPlayers
         except:
-            rooms[room]["maxPlayers"] = '10'
+            rooms[room]["maxPlayers"] = 10
         try:
             rounds = request.form.get("rounds")
             rounds = int(rounds)
-            rooms[room]["rounds"] = str(rounds)
+            rooms[room]["rounds"] = rounds
         except:
-            rooms[room]["rounds"] = '5'
+            rooms[room]["rounds"] = 5
         try:
             roundDuration = request.form.get("roundDuration")
             roundDuration = int(roundDuration)
-            rooms[room]["roundDuration"] = str(roundDuration)
+            rooms[room]["roundDuration"] = roundDuration
         except:
-            rooms[room]["roundDuration"] = '60'
+            rooms[room]["roundDuration"] = 60
         rooms[room]["customWordsList"] = request.form.get("customWords")
         print(rooms[room])
         return jsonify({'status': 'success', 'room': room})
@@ -307,6 +320,16 @@ def join_room(room):
 @app.route("/game", methods=["GET", "POST"])
 def game():
     return render_template("drawing.html")
+
+@app.route("/leaderboard", methods=["GET", "POST"])
+def leaderboard():
+    return render_template("leaderboard.html")
+
+@app.route("/report", methods=["GET", "POST"])
+def report():
+    return render_template("report.html")
+
+# ----------------- Real Time Connection ----------------- #
 
 @socketio.on("message")
 def message(data):
@@ -326,6 +349,56 @@ def message(data):
     print("Messages:", rooms[room]["messages"])
     print(f"{session.get('name')} said: {data['data']}")
 
+@socketio.on("start")
+def startGame():
+    name = session.get("name")
+    room = session.get("room")
+    if room not in rooms or len(rooms[room]["players"]) == 0:
+        return url_for("index")
+    
+    first_drawer = rooms[room]["players"][0]
+    content = {
+        "username": name,
+        "drawer": first_drawer
+    }
+    
+    print("Starting...")
+    socketio.emit("start")
+
+@socketio.on("request_drawer")
+def request_drawer():
+    name = session.get("name")
+    room = session.get("room")
+    if room not in rooms or len(rooms[room]["players"]) == 0:
+        return url_for("index")
+    
+    first_drawer = rooms[room]["players"][0]
+    content = {
+        "username": name,
+        "drawer": first_drawer
+    }
+    
+    print("Updating drawer...")
+    socketio.emit("update_drawer", content)
+
+@socketio.on("new_round")
+def new_round():
+    room = session.get("room")
+    if room not in rooms:
+        return
+    
+    current_drawer = rooms[room].get("drawer", None)
+    players = rooms[room]["players"]
+
+    if current_drawer and current_drawer in players:
+        current_index = players.index(current_drawer)
+        next_drawer = players[(current_index + 1) % len(players)]
+    else:
+        next_drawer = players[0]
+
+    rooms[room]["drawer"] = next_drawer
+    socketio.emit("update_drawer", {"drawer": next_drawer}, to=room)
+
 @socketio.on("connect")
 def connect(auth):
     room = session.get("room")
@@ -338,8 +411,39 @@ def connect(auth):
     
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
+
+    if name not in rooms[room]["players"]:
+        rooms[room]["players"].append(name)
+        print("List of Players:", rooms[room]["players"])
+
     rooms[room]["members"] += 1
     print(f"{name} joined room {room}")
+    print(f"Assigning username {name} to session ID: {request.sid}")
+
+    socketio.emit("username", rooms[room]["players"]) # Sends an array containing all usernames in a lobby.
+    socketio.emit("individual_username", name, room=request.sid) # Sends a string consisting of an individual username.
+
+@socketio.on("drawing_update")
+def drawing_update(data):
+    print("Sending drawing update...")
+    room = session.get("room")
+
+    image_data = data.get("image", "")
+    if not image_data.startswith("data:image/png;base64,"):
+        print("Error: Invalid Base64 format!")
+        return
+
+    try:
+        base64_data = image_data.split(",")[1]
+        base64.b64decode(base64_data)
+    except Exception as error:
+        print("Error decoding Base64:", error)
+        return
+
+    print(f"Received drawing from {session.get('name')} in room {room}.")
+
+    socketio.emit("display_drawing", {"image": data["image"]})
+    print("Emitted display_drawing event to room:", room)
 
 @socketio.on("disconnect")
 def disconnect():
@@ -347,7 +451,8 @@ def disconnect():
     name = session.get("name")
     leave_room(room)
 
-    if room in rooms:
+    if room in rooms and name in rooms[room]["players"]:
+        rooms[room]["players"].remove(name)
         rooms[room]["members"] -= 1
         if rooms[room]["members"] <= 0:
             del rooms[room]
@@ -355,5 +460,11 @@ def disconnect():
     send({"name": name, "message": "has left the room"}, to=room)
     print(f"{name} has left the room {room}")
 
+    socketio.emit("update_players", rooms[room]["players"])
+
 if __name__ == "__main__":
     socketio.run(app, debug = True)
+
+# Use this to run the server:
+# python init_db.py (if there is no instance folder)
+# flask --app main.py run --host=0.0.0.0 --port=5000
