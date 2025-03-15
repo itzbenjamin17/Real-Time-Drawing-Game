@@ -48,7 +48,7 @@
       Your browser does not support the HTML canvas tag.
     </canvas>
 
-    <img id="DrawingImage" width="800" height="450" style="display: none;">
+    <img id="DrawingImage" width="800" height="450" style="border:10px solid #000000; display: none;">
     
     <!--Chat Canvas (Incomplete)-->
     <canvas id="ChatCanvas" width="150" height="450" style="border:10px solid #000000;" >
@@ -174,9 +174,9 @@ const updateUI = () => {
     const canvasElement = document.getElementById("DrawingCanvas");
     const imageElement = document.getElementById("DrawingImage");
 
-    console.log("isDrawing:", isDrawing);
-    console.log("Drawer:", currentDrawer);
-    console.log("Username:", individualUsername);
+    // console.log("isDrawing:", isDrawing);
+    // console.log("Drawer:", currentDrawer);
+    // console.log("Username:", individualUsername);
 
     if (isDrawing) {
         console.log("Drawing.");
