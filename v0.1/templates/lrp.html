@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Issue</title>
+    <link rel="stylesheet" href="lrp_css.css">
+    <script>
+        function updateCounter() {
+            let desc = document.getElementById("issue_description");
+            let counter = document.getElementById("char_counter");
+            counter.textContent = desc.value.length + "/250";
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+            alert("Your issue has been reported successfully!");
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Report an Issue</h1>
+        <form onsubmit="submitForm(event)">
+            <label>Username:</label>
+            <input type="text" required>
+            
+            <label>Email:</label>
+            <input type="email" required>
+
+            <label>Issue Type:</label>
+            <select>
+                <option>Bug</option>
+                <option>UI Issue</option>
+                <option>Gameplay</option>
+                <option>Other</option>
+            </select>
+
+            <label>Describe the Issue:</label>
+            <textarea id="issue_description" oninput="updateCounter()" maxlength="250"></textarea>
+            <p id="char_counter">0/250</p>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
