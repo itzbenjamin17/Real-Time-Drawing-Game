@@ -18,13 +18,12 @@
             <input type="text" rows="3" placeholder="Message" name="message" id="message"/>
             <button type="button" name="send" id="send-btn" onClick="sendMessage()">Send</button>
         </div>
-        {% if host %}
-        <div class="start-button-container">
-            <button type="button" id="startGame" onClick="startGame()">Start Game</button>
-        </div>
-        {% endif %}
     </div>
 </div>
+
+{% if host %}
+    <button type="submit" id="startGame" onClick="startGame()">Start Game</button>
+{% endif %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/room.css') }}">
 <script type="text/javascript">
