@@ -18,6 +18,22 @@ let lastY = 0;
 // ---Data from Back-End---
 let word = "apple";
 
+// Get usernames and scores for each player
+let username1 = "shel";
+let score1 = 239;
+
+let username2 = "shell";
+let score2 = 2399;
+
+let username3 = "shelll";
+let score3 = 23999;
+
+let username4 = "shellll";
+let score4 = 239999;
+
+let username5 = "shelllll";
+let score5 = 2399999;
+
 // ---Images---
 const pencil = new Image();
 pencil.src = "static/pencil.png";
