@@ -19,8 +19,6 @@ let lastY = 0;
 let word = "apple";
 
 // Get usernames and scores for each player
-let numOfPlayers = 5;
-
 let username1 = "shel";
 let score1 = 239;
 
@@ -281,69 +279,43 @@ function stopTimer() {
 function loadLeaderboard() {
     // Load player list
 
-    // 1st Place
+    // Draw the black outline
     Lcnvs.strokeStyle = "black";
     Lcnvs.lineWidth = 2;
-    Lcnvs.strokeRect(10, 10, 130, 75);
+    Lcnvs.strokeRect(10, 10, 130, 75); 
+    Lcnvs.strokeRect(10, 95, 130, 75);
+    Lcnvs.strokeRect(10, 185, 130, 75);
+    Lcnvs.strokeRect(10, 275, 130, 75);
+    Lcnvs.strokeRect(10, 365, 130, 75);
 
+    // Draw the white background
     Lcnvs.fillStyle = "white";
     Lcnvs.fillRect(10, 10, 130, 75);
+    Lcnvs.fillRect(10, 95, 130, 75);
+    Lcnvs.fillRect(10, 185, 130, 75);
+    Lcnvs.fillRect(10, 275, 130, 75);
+    Lcnvs.fillRect(10, 365, 130, 75);
 
+    // Add the texts
     addText(Lcnvs, "20", "center", "1st", 75, 35);
     addText(Lcnvs, "20", "center", username1, 75, 55);
     addText(Lcnvs, "20", "center", score1.toString(), 75, 75);
 
-    if (numOfPlayers >= 2) {
-        // 2nd Place
-        Lcnvs.strokeStyle = "black";
-        Lcnvs.strokeRect(10, 95, 130, 75);
+    addText(Lcnvs, "20", "center", "2nd", 75, 120);
+    addText(Lcnvs, "20", "center", username2, 75, 140);
+    addText(Lcnvs, "20", "center", score2.toString(), 75, 160);
 
-        Lcnvs.fillStyle = "white";
-        Lcnvs.fillRect(10, 95, 130, 75);
+    addText(Lcnvs, "20", "center", "3rd", 75, 210);
+    addText(Lcnvs, "20", "center", username3, 75, 230);
+    addText(Lcnvs, "20", "center", score3.toString(), 75, 250);
 
-        addText(Lcnvs, "20", "center", "2nd", 75, 120);
-        addText(Lcnvs, "20", "center", username2, 75, 140);
-        addText(Lcnvs, "20", "center", score2.toString(), 75, 160);
+    addText(Lcnvs, "20", "center", "4th", 75, 300);
+    addText(Lcnvs, "20", "center", username4, 75, 320);
+    addText(Lcnvs, "20", "center", score4.toString(), 75, 340);
 
-        if (numOfPlayers >= 3) {
-            // 3rd Place
-            Lcnvs.strokeStyle = "black";
-            Lcnvs.strokeRect(10, 185, 130, 75);
-
-            Lcnvs.fillStyle = "white";
-            Lcnvs.fillRect(10, 185, 130, 75);
-
-            addText(Lcnvs, "20", "center", "3rd", 75, 210);
-            addText(Lcnvs, "20", "center", username3, 75, 230);
-            addText(Lcnvs, "20", "center", score3.toString(), 75, 250);
-
-            if (numOfPlayers >= 4) {
-                // 4th Place
-                Lcnvs.strokeStyle = "black";
-                Lcnvs.strokeRect(10, 275, 130, 75);
-
-                Lcnvs.fillStyle = "white";
-                Lcnvs.fillRect(10, 275, 130, 75);
-
-                addText(Lcnvs, "20", "center", "4th", 75, 300);
-                addText(Lcnvs, "20", "center", username4, 75, 320);
-                addText(Lcnvs, "20", "center", score4.toString(), 75, 340);
-
-                if (numOfPlayers >= 5) {
-                    // 5th Place
-                    Lcnvs.strokeStyle = "black";
-                    Lcnvs.strokeRect(10, 365, 130, 75);
-
-                    Lcnvs.fillStyle = "white";
-                    Lcnvs.fillRect(10, 365, 130, 75);
-
-                    addText(Lcnvs, "20", "center", "5th", 75, 390);
-                    addText(Lcnvs, "20", "center", username5, 75, 410);
-                    addText(Lcnvs, "20", "center", score5.toString(), 75, 430);
-                }
-            }
-        }
-    }
+    addText(Lcnvs, "20", "center", "5th", 75, 390);
+    addText(Lcnvs, "20", "center", username5, 75, 410);
+    addText(Lcnvs, "20", "center", score5.toString(), 75, 430);
 }
 
 // ---Event listeners---
@@ -438,6 +410,14 @@ window.onload = function() {
     socketio.emit('ready')
 }
 
+socketio.onAny((event, ...args) => {
+    console.log(`Received Event: ${event}`, args);
+});
+
+socketio.on("connect", () => {
+    console.log("Socket Connected!");
+});
+
 socketio.on('redirect', (url) => {
     window.location.href = url;
 });
@@ -461,3 +441,13 @@ socketio.on('chooseWords', (words) => {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('word-selection-modal').style.display = 'block';
 });
+
+// Sending canvas data
+const sendDrawing = () => {
+    const canvas = document.getElementById("DrawingCanvas");
+    const dataURL = canvas.toDataURL();
+
+    console.log("Sending drawing update:", dataURL.slice(0, 50) + "...");
+    socketio.emit("drawing_update", {"image": dataURL});
+};
+setInterval(sendDrawing, 500); // Sends an image of the canvas to all players every half-second.
