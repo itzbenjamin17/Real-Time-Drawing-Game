@@ -325,9 +325,13 @@ def game():
 def leaderboard():
     return render_template("leaderboard.html")
 
+@app.route("/about", methods=["GET", "POST"])
+def about():
+    return render_template("frp.html")
+
 @app.route("/report", methods=["GET", "POST"])
 def report():
-    return render_template("report.html")
+    return render_template("lrp.html")
 
 # ----------------- Real Time Connection ----------------- #
 
@@ -399,29 +403,44 @@ def new_round():
     rooms[room]["drawer"] = next_drawer
     socketio.emit("update_drawer", {"drawer": next_drawer}, to=room)
 
+@socketio.on("reported")
+def reported(data):
+    print(data)
+
+    name = data["username"]
+    email = data["email"]
+    issue_type = data["issue_type"]
+    issue_desc = data["issue_description"]
+
+    # You can save these into the database, the variable names are self-explanatory.
+    # If you want to see where these values are coming from, check lrp.html.
+
 @socketio.on("connect")
 def connect(auth):
-    room = session.get("room")
-    name = session.get("name")
-    if not room or not name:
-        return
-    if room not in rooms:
-        leave_room(room)
-        return
-    
-    join_room(room)
-    send({"name": name, "message": "has entered the room"}, to=room)
+    try:
+        room = session.get("room")
+        name = session.get("name")
+        if not room or not name:
+            return
+        if room not in rooms:
+            leave_room(room)
+            return
+        
+        join_room(room)
+        send({"name": name, "message": "has entered the room"}, to=room)
 
-    if name not in rooms[room]["players"]:
-        rooms[room]["players"].append(name)
-        print("List of Players:", rooms[room]["players"])
+        if name not in rooms[room]["players"]:
+            rooms[room]["players"].append(name)
+            print("List of Players:", rooms[room]["players"])
 
-    rooms[room]["members"] += 1
-    print(f"{name} joined room {room}")
-    print(f"Assigning username {name} to session ID: {request.sid}")
+        rooms[room]["members"] += 1
+        print(f"{name} joined room {room}")
+        print(f"Assigning username {name} to session ID: {request.sid}")
 
-    socketio.emit("username", rooms[room]["players"]) # Sends an array containing all usernames in a lobby.
-    socketio.emit("individual_username", name, room=request.sid) # Sends a string consisting of an individual username.
+        socketio.emit("username", rooms[room]["players"]) # Sends an array containing all usernames in a lobby.
+        socketio.emit("individual_username", name, room=request.sid) # Sends a string consisting of an individual username.
+    except:
+        print("Something went wrong.")
 
 @socketio.on("drawing_update")
 def drawing_update(data):
@@ -447,20 +466,23 @@ def drawing_update(data):
 
 @socketio.on("disconnect")
 def disconnect():
-    room = session.get("room")
-    name = session.get("name")
-    leave_room(room)
+    try:
+        room = session.get("room")
+        name = session.get("name")
+        leave_room(room)
 
-    if room in rooms and name in rooms[room]["players"]:
-        rooms[room]["players"].remove(name)
-        rooms[room]["members"] -= 1
-        if rooms[room]["members"] <= 0:
-            del rooms[room]
-    
-    send({"name": name, "message": "has left the room"}, to=room)
-    print(f"{name} has left the room {room}")
+        if room in rooms and name in rooms[room]["players"]:
+            rooms[room]["players"].remove(name)
+            rooms[room]["members"] -= 1
+            if rooms[room]["members"] <= 0:
+                del rooms[room]
+        
+        send({"name": name, "message": "has left the room"}, to=room)
+        print(f"{name} has left the room {room}")
 
-    socketio.emit("update_players", rooms[room]["players"])
+        socketio.emit("update_players", rooms[room]["players"])
+    except:
+        print("Something went wrong.")
 
 if __name__ == "__main__":
     socketio.run(app, debug = True)
