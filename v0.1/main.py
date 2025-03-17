@@ -376,7 +376,7 @@ def sendWords():
     
 @socketio.on('wordSelected')
 def receiveWord(word):
-    print(word)
+    socketio.emit('wordSelected', word)
 
 @socketio.on("connect")
 def connect(auth):

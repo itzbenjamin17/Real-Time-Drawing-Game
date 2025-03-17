@@ -327,17 +327,11 @@ drawCircle(580, "pink");
 drawCircle(670, "brown");
 drawCircle(760, "black");
 
-// Display the word at the top
-addText(Wcnvs, "50", "center", word, 400, 50);
-
 // Back Button Text
 addText(Bcnvs, "40", "center", "Back", 75, 50);
 
 // Timer Text 
 addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
-
-// Start Timer
-timer = setInterval(runTimer, 1000);
 
 var socketio = io();
 
@@ -359,6 +353,8 @@ socketio.on('chooseWords', (words) => {
             socketio.emit('wordSelected', word);
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('word-selection-modal').style.display = 'none';
+            timer = setInterval(runTimer, 1000);
+            addText(Wcnvs, "50", "center", word, 400, 50);
         };
         wordList.appendChild(listItem);
     });

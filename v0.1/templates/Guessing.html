@@ -61,6 +61,15 @@
     <input type="text" id="Guess" placeholder="Type your guess here..." style="position: absolute;">
     </div>
 
+    <div id="waiting-modal" class="modal">
+      <div class="modal-content">
+        <h2>Waiting for drawer to choose word</h2>
+      </div>
+    </div>
+    
+    <!-- Background dimming overlay -->
+    <div id="overlay" class="overlay"></div>
+
     <script src="{{ url_for('static', filename='js/guessing.js') }}"></script>
   </body>
 </html>

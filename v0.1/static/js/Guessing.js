@@ -211,16 +211,23 @@ addText(Bcnvs, "40", "center", "Back", 75, 50);
 // Timer Text 
 addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
 
-// Display the word at the top
-displayWord(word, false);
-
 // Set initial size when the sreen first loads
 window.onload = adjustTextArea;
 
-// Start Timer
-timer = setInterval(runTimer, 1000)
-
 var socketio = io();
+
+window.onload = function() {
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('waiting-modal').style.display = 'block';
+}
+
+socketio.on('wordSelected', (wordToGuess) => {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('waiting-modal').style.display = 'none';
+    word = wordToGuess;
+    displayWord(word, false);
+    timer = setInterval(runTimer, 1000);
+});
 
 socketio.on('redirect', (url) => {
     window.location.href = url;
