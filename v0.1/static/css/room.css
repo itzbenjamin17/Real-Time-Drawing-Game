@@ -14,8 +14,6 @@ body {
     overflow: hidden;
 }
 
-<<<<<<< HEAD
-=======
 .start-button-container {
     margin-top: 20px;
     text-align: center;
@@ -37,7 +35,6 @@ body {
     background-color: #218838;
     transform: scale(1.05);
 }
->>>>>>> johan
 @keyframes gradientMove {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
