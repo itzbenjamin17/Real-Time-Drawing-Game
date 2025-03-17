@@ -18,10 +18,10 @@
             let counter = document.getElementById("char_counter");
             counter.textContent = desc.value.length + "/250";
         }
+
     </script>
 </head>
 <body>
-    <div class="background-animation"></div>
     <div class="container">
         <h1 class="title">Report an Issue</h1>
         <form onsubmit="sendReport()">
@@ -44,36 +44,8 @@
             <p id="char_counter">0/250</p>
 
             <button type="submit">Submit</button>
-            <button type="button" onclick="window.location.href='/'">Back to Home</button>
         </form>
     </div>
-
-<script text="text/javascript">
-    var socketio = io();
-
-    socketio.on("connect", () => {
-      console.log("Socket Connected!");
-     });
-
-    function sendReport() {
-        event.preventDefault();
-        alert("Your issue has been reported successfully!");
-
-        const username = document.getElementById("username").value;
-        const email = document.getElementById("email").value;
-        const issue_type = document.getElementById("issue_type").value;
-        const issue_description = document.getElementById("issue_description").value;
-
-        console.log(username, email, issue_type, issue_description);
-
-        socketio.emit("reported", {"username": username, "email": email, "issue_type": issue_type, "issue_description": issue_description});
-        
-        // Redirect back to home after reporting
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 1000);
-    }
-</script>
 </body>
 </html>
 
