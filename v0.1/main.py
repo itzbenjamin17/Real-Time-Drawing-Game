@@ -233,6 +233,7 @@ def index():
 
 @app.route("/room", methods=["GET", "POST"])
 def room():
+
     name = session.get("name")
     if not name:
         return redirect(url_for("index"))
@@ -284,8 +285,13 @@ def create_room():
     room = generate_unique_code(4)
     rooms[room] = {
         "members": 0,
-        "messages": []
+        "messages": [],
+        "maxPlayers": 0,
+        "rounds": 0,
+        "roundDuration": 0,
+        "customWordsList": []
     }
+
     session["room"] = room
 
     if request.method == "POST":
@@ -307,9 +313,8 @@ def create_room():
             rooms[room]["roundDuration"] = roundDuration
         except:
             rooms[room]["roundDuration"] = 60
+
         rooms[room]["customWordsList"] = request.form.get("customWords")
-        print(rooms[room])
-        return jsonify({'status': 'success', 'room': room})
 
     return render_template("create room.html", code=room, messages=rooms[room]["messages"])
 
@@ -319,7 +324,25 @@ def join_room(room):
 
 @app.route("/game", methods=["GET", "POST"])
 def game():
-    return render_template("drawing.html")
+    room = session.get("room")
+    if room is None or session.get("name") is None or room not in rooms:
+        print(room)
+        print(session.get("name"))
+        print(room in rooms)
+        print("Room is missing.")
+        return redirect(url_for("index"))
+
+    data = {
+        "max_players": rooms[room]["maxPlayers"],
+        "rounds": rooms[room]["rounds"],
+        "round_duration": rooms[room]["roundDuration"],
+        "custom_words": rooms[room]["customWordsList"]
+    }
+
+    for key in data.keys():
+        print(f"{key}: {data[key]}")
+
+    return render_template("drawing.html", parameters=data)
 
 @app.route("/leaderboard", methods=["GET", "POST"])
 def leaderboard():
