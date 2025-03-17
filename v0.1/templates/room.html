@@ -29,6 +29,8 @@
 
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/room.css') }}">
+<script src="{{ url_for('static', filename='js/room.js') }}"></script>
+
 <script type="text/javascript">
     var socketio = io();
 
@@ -108,10 +110,5 @@
     });
     
 </script>
-{% for msg in messages %}
-    <script type="text/javascript">
-        createMessage("{{msg.name}}", "{{msg.message}}")
-    </script>
-{% endfor %}
 
 {% endblock %}
