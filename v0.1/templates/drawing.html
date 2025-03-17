@@ -1,12 +1,5 @@
 <!doctype html>
 <html lang="en">
-
-<script
-    src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
-    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
-    crossorigin="anonymous"
-></script>
-
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="thing.png" />
@@ -48,13 +41,11 @@
       Your browser does not support the HTML canvas tag.
     </canvas>
 
-    <!--Drawing Canvas, push to draw; or Image of Canvas-->
-    <canvas id="DrawingCanvas" width="800" height="450" style="border:10px solid #000000;">
+    <!--Drawing Canvas, push to draw-->
+    <canvas id="DrawingCanvas" width="800" height="450" style="border:10px solid #000000;" >
       Your browser does not support the HTML canvas tag.
     </canvas>
 
-    <img id="DrawingImage" width="800" height="450" style="border:10px solid #000000; display: none;">
-    
     <!--Chat Canvas (Incomplete)-->
     <canvas id="ChatCanvas" width="150" height="450" style="border:10px solid #000000;" >
       Your browser does not support the HTML canvas tag.
@@ -91,181 +82,3 @@
     <script src="{{ url_for('static', filename='js/drawing.js') }}"></script>
   </body>
 </html>
-
-<script type="text/javascript">
-  const gameConfig = {{ parameters | tojson }};
-  
-  const maxPlayers = gameConfig.max_players;
-  const rounds = gameConfig.rounds;
-  const roundDuration = gameConfig.round_duration;
-  const customWords = JSON.parse(gameConfig.custom_words);
-
-  console.log("Custom Words:", customWords);
-
-  let guessWords = ["horse", "suitcase", "rain", "socks", "grapes",
-                    "skateboard", "dream", "cat", "fly", "bark",
-                    "solar system", "hip", "fist", "fruit", "saltwater",
-                    "penguin", "trap", "glove", "tail", "hour", "crust",
-                    "lullaby", "geyser", "rival", "exponential", "haberdashery",
-                    "plot", "camera", "sun", "grandpa", "detail"];
-
-  customWords.forEach(word => {
-    guessWords.push(word);
-  });
-
-  console.log("Max Players:", maxPlayers);
-  console.log("Rounds:", rounds);
-  console.log("Round Duration:", roundDuration);
-  console.log("Custom Words:", customWords);
-  console.log("Guessing Words:", guessWords);
-</script>
-
-
-<script type="text/javascript">
-  var socketio = io();
-
-  const messages = document.getElementById("messages");
-  var individualUsername = "";
-
-  // Debugging
-  socketio.onAny((event, ...args) => {
-    console.log(`Received Event: ${event}`, args);
-  });
-
-  // Checks for a connection, requests the backend to assign a drawer.
-  socketio.on("connect", () => {
-      console.log("Socket Connected!");
-      socketio.emit("request_drawer");
-  });
-
-  // Error Handling
-  socketio.on("error", (error) => {
-      console.log("SocketIO Error:", error);
-  });
-  
-  // Used to receive the usernames of the whole lobby.
-  socketio.on("username", (playerName) => {
-      console.log("New Player:", playerName);
-  });
-
-  // Used to receive the client's individual username from the backend.
-  socketio.on("individual_username", (username) => {
-      console.log("My Username (before):", individualUsername);
-      console.log("Received Username:", username);
-      individualUsername = username;
-
-      console.log("My Username (after):", individualUsername);
-
-      updateUI();
-  });
-
-  // Sending Messages
-  socketio.on("message", (data) => {
-      console.log("Received Message:", data);
-      createMessage(data.name, data.message);
-      console.log("Still connected...");
-  });
-
-  // Canvas Display
-  socketio.on("display_drawing", (data) => {
-      console.log("Received drawing update:", data.image.slice(0, 50) + "...");
-
-      const imageElement = document.getElementById("DrawingImage");
-      console.log("DrawingImage element exists?", document.getElementById("DrawingImage"));
-
-      if (!imageElement) {
-        console.error("Error: Image element not found!");
-        return;
-  }
-
-  console.log("Updating image src...");
-  imageElement.src = data.image;
-
-  imageElement.onload = () => {
-    console.log("Image loaded.");
-  };
-  imageElement.onerror = () => {
-    console.error("Failed to load image.");
-  };
-  // updateUI();
-});
- 
-  const createMessage = (name, msg) => {
-      const content = `
-      <div class="text">
-          <span>
-              <strong>${name}</strong>: ${msg}
-          </span>
-          <span class="muted">
-              ${new Date().toLocaleString()}
-      </div>
-      `;
-      messages.innerHTML += content;
-      messages.scrollTop = messages.scrollHeight;
-  };
-
-  const sendMessage = () => {
-      const message = document.getElementById("message");
-      if (message.value == "") return;
-      socketio.emit("message", {data: message.value});
-      message.value = "";
-  };
-
-  //document.getElementById("send-btn").addEventListener("click", sendMessage);
-  //document.getElementById("message").addEventListener("keypress", function(event) {
-  //    if (event.key === "Enter") sendMessage();
-  //});
-
-// Canvas or Image Selection
-const updateUI = () => {
-    const canvasElement = document.getElementById("DrawingCanvas");
-    const imageElement = document.getElementById("DrawingImage");
-
-    // console.log("isDrawing:", isDrawing);
-    // console.log("Drawer:", currentDrawer);
-    // console.log("Username:", individualUsername);
-
-    if (isDrawing) {
-        console.log("Drawing.");
-        canvasElement.style.display = "block";
-        imageElement.style.display = "none";
-    }
-    else {
-        console.log("Not drawing.");
-        canvasElement.style.display = "none";
-        imageElement.style.display = "block";
-    }
-};
-
-// Canvas Capture
-const sendDrawing = () => {
-    if (!isDrawing) return;
-
-    const canvas = document.getElementById("DrawingCanvas");
-    const dataURL = canvas.toDataURL();
-
-    console.log("Sending drawing update:", dataURL.slice(0, 50) + "...");
-    socketio.emit("drawing_update", {"image": dataURL});
-};
-setInterval(sendDrawing, 500); // Sends an image of the canvas to all players every half-second.
-
-// Assign a new drawer
-socketio.on("update_drawer", (data) => {
-  if (!individualUsername) {
-    console.log("Waiting for individualUsername...");
-    return;
-  }
-
-  console.log("New Drawer:", data.drawer);
-  currentDrawer = data.drawer;
-  isDrawing = (currentDrawer == individualUsername);
-
-  updateUI();
-});
-
-// New Round
-const newRound = () => {
-    socketio.emit("new_round")
-};
-
-</script>
