@@ -39,18 +39,10 @@
     socketio.on("error", (error) => {
         console.log("SocketIO Error:", error);
     });
-<<<<<<< HEAD
 
     const updatePlayerList = () => {
         console.log("Updating player list...");
         console.log("Current Players:", players);
-=======
-
-    let players = [];
-
-    const updatePlayerList = () => {
-        console.log("Updating player list...")
->>>>>>> JohnFlask
         playersList.innerHTML = "";
         players.forEach(player => {
             const li = document.createElement("li");
@@ -60,19 +52,9 @@
     };
 
     socketio.on("username", (updatedPlayers) => {
-<<<<<<< HEAD
         console.log("New Player:", updatedPlayers);
         players = updatedPlayers;
         console.log("Current Players:", players);
-=======
-        console.log("Players:", updatedPlayers)
-        players = updatedPlayers;
-        updatePlayerList();
-    });
-
-    const addPlayer = (player) => {
-        players.push(player);
->>>>>>> JohnFlask
         updatePlayerList();
     });
 
@@ -103,7 +85,6 @@
         message.value = "";
     };
 
-<<<<<<< HEAD
     const startGame = () => {
         socketio.emit("start");
     };
@@ -112,8 +93,6 @@
         window.location.href = url;
     });
 
-=======
->>>>>>> JohnFlask
     socketio.on("message", (data) => {
         console.log("Received Message:", data);
         createMessage(data.name, data.message);
@@ -123,16 +102,8 @@
     document.getElementById("send-btn").addEventListener("click", sendMessage);
     document.getElementById("message").addEventListener("keypress", function(event) {
         if (event.key === "Enter") sendMessage();
-<<<<<<< HEAD
     });
     
-=======
-    });    
-
-    // updatePlayerList();
-    // addPlayer("johan")
-
->>>>>>> JohnFlask
 </script>
 {% for msg in messages %}
     <script type="text/javascript">
