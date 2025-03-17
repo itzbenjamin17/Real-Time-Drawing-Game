@@ -381,9 +381,13 @@ def guess():
 def leaderboard():
     return render_template("leaderboard.html")
 
+@app.route("/about", methods=["GET", "POST"])
+def about():
+    return render_template("frp.html")
+
 @app.route("/report", methods=["GET", "POST"])
 def report():
-    return render_template("report.html")
+    return render_template("lrp.html")
 
 # ----------------- Real Time Connection ----------------- #
 
@@ -478,6 +482,18 @@ def reported(data):
     except Exception as e:
         db.session.rollback()
         print("Error adding report to database:", e)
+
+    # You can save these into the database, the variable names are self-explanatory.
+    # If you want to see where these values are coming from, check lrp.html.
+
+@socketio.on("reported")
+def reported(data):
+    print(data)
+
+    name = data["username"]
+    email = data["email"]
+    issue_type = data["issue_type"]
+    issue_desc = data["issue_description"]
 
     # You can save these into the database, the variable names are self-explanatory.
     # If you want to see where these values are coming from, check lrp.html.

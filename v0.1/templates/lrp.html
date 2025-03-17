@@ -76,3 +76,26 @@
 </script>
 </body>
 </html>
+
+<script text="text/javascript">
+    var socketio = io();
+
+    socketio.on("connect", () => {
+      console.log("Socket Connected!");
+     });
+
+    function sendReport() {
+        event.preventDefault();
+        alert("Your issue has been reported successfully!");
+
+        const username = document.getElementById("username").value;
+        const email = document.getElementById("email").value;
+        const issue_type = document.getElementById("issue_type").value;
+        const issue_description = document.getElementById("issue_description").value;
+
+        console.log(username, email, issue_type, issue_description);
+
+        socketio.emit("reported", {"username": username, "email": email, "issue_type": issue_type, "issue_description": issue_description});
+    }
+
+</script>

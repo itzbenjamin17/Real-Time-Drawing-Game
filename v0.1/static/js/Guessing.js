@@ -1,13 +1,32 @@
-// Variables
+// ---Variables---
 let mouseX = 0;
 let mouseY = 0;
 let minutes = "3";
 let tenSeconds = "0";
 let seconds = "0";
 
-// Data from Back-End
+// ---Data from Back-End---
 let word = "apple";
 
+// Get usernames and scores for each player
+let numOfPlayers = 5;
+
+let username1 = "shel";
+let score1 = 239;
+
+let username2 = "shell";
+let score2 = 2399;
+
+let username3 = "shelll";
+let score3 = 23999;
+
+let username4 = "shellll";
+let score4 = 239999;
+
+let username5 = "shelllll";
+let score5 = 2399999;
+
+// ---Define the Canvases---
 // Back Canvas
 var backCanvas = document.getElementById("BackCanvas");
 var Bcnvs = backCanvas.getContext("2d");
@@ -38,6 +57,8 @@ var Gcnvs = guessingCanvas.getContext("2d");
 
 // Text Area
 let textArea = document.getElementById("Guess");
+
+// ---Functions---
 
 //Get coords of canvas topleft corner
 function getCanvasCorners(canvas) {
@@ -71,7 +92,7 @@ function addText(cnvs, size, align, text, textX, textY) {
     cnvs.fillText(text, textX, textY);
 }
 
-// Runs when the Back Button is pressed (incomplete)
+// Runs when the Back Button is pressed (**incomplete**)
 function back() {
     console.log("Back Button") // Send to back end that user has left the room
 }
@@ -92,6 +113,7 @@ function runTimer() {
                 addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
                 stopTimer();
                 console.log("Time's Up! The word was: " + word)
+                // Need to add logic to end the round and move on to the next
             }
 
             else {
@@ -158,6 +180,78 @@ function makeGuess() {
     }
 }
 
+// Need logic that checks if all guessing players have guessed correctly
+
+function loadLeaderboard() {
+    // Load player list
+
+    // 1st Place
+    Lcnvs.strokeStyle = "black";
+    Lcnvs.lineWidth = 2;
+    Lcnvs.strokeRect(10, 10, 130, 75);
+
+    Lcnvs.fillStyle = "white";
+    Lcnvs.fillRect(10, 10, 130, 75);
+
+    addText(Lcnvs, "20", "center", "1st", 75, 35);
+    addText(Lcnvs, "20", "center", username1, 75, 55);
+    addText(Lcnvs, "20", "center", score1.toString(), 75, 75);
+
+    if (numOfPlayers >= 2) {
+        // 2nd Place
+        Lcnvs.strokeStyle = "black";
+        Lcnvs.strokeRect(10, 95, 130, 75);
+
+        Lcnvs.fillStyle = "white";
+        Lcnvs.fillRect(10, 95, 130, 75);
+
+        addText(Lcnvs, "20", "center", "2nd", 75, 120);
+        addText(Lcnvs, "20", "center", username2, 75, 140);
+        addText(Lcnvs, "20", "center", score2.toString(), 75, 160);
+
+        if (numOfPlayers >= 3) {
+            // 3rd Place
+            Lcnvs.strokeStyle = "black";
+            Lcnvs.strokeRect(10, 185, 130, 75);
+
+            Lcnvs.fillStyle = "white";
+            Lcnvs.fillRect(10, 185, 130, 75);
+
+            addText(Lcnvs, "20", "center", "3rd", 75, 210);
+            addText(Lcnvs, "20", "center", username3, 75, 230);
+            addText(Lcnvs, "20", "center", score3.toString(), 75, 250);
+
+            if (numOfPlayers >= 4) {
+                // 4th Place
+                Lcnvs.strokeStyle = "black";
+                Lcnvs.strokeRect(10, 275, 130, 75);
+
+                Lcnvs.fillStyle = "white";
+                Lcnvs.fillRect(10, 275, 130, 75);
+
+                addText(Lcnvs, "20", "center", "4th", 75, 300);
+                addText(Lcnvs, "20", "center", username4, 75, 320);
+                addText(Lcnvs, "20", "center", score4.toString(), 75, 340);
+
+                if (numOfPlayers >= 5) {
+                    // 5th Place
+                    Lcnvs.strokeStyle = "black";
+                    Lcnvs.strokeRect(10, 365, 130, 75);
+
+                    Lcnvs.fillStyle = "white";
+                    Lcnvs.fillRect(10, 365, 130, 75);
+
+                    addText(Lcnvs, "20", "center", "5th", 75, 390);
+                    addText(Lcnvs, "20", "center", username5, 75, 410);
+                    addText(Lcnvs, "20", "center", score5.toString(), 75, 430);
+                }
+            }
+        }
+    }
+}
+
+// ---Event Listeners---
+
 // Detect when the mouse is moved
 document.addEventListener("mousemove", function(event) {
     mouseX = event.clientX; // Update global X coordinate
@@ -176,6 +270,8 @@ textArea.addEventListener("keyup", function(event) {
         makeGuess()
     }
 })
+
+// ---Drawing to the screen---
 
 // Background for Back Canvas
 Bcnvs.fillStyle = "#f93cff";
@@ -211,8 +307,12 @@ addText(Bcnvs, "40", "center", "Back", 75, 50);
 // Timer Text 
 addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
 
+loadLeaderboard();
+
 // Set initial size when the sreen first loads
 window.onload = adjustTextArea;
+
+// ---Socketio---
 
 var socketio = io();
 
