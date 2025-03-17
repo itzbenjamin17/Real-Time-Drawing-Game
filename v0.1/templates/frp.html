@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScribbleVerse - Advanced Reporting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/frp_css.css') }}">
+    <script defer src="frp_script.js"></script>
+    <script defer src="particles.js"></script>
+    <script defer src="shader_bg.js"></script>
+    <script defer src="speech_control.js"></script>
+    <script defer src="neon_text.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+</head>
+<body>
+    <canvas id="shaderCanvas"></canvas>
+    <div id="particles-js"></div>
+    
+    <div class="container">
+        <h1 class="title neon-text">🚀 ScribbleVerse Reporting</h1>
+
+        <div class="card-container">
+            <div class="card floating" id="howToPlay">
+                <h2>🎮 How to Play</h2>
+                <p>Draw, guess, and win! Play with real-time AI opponents.</p>
+            </div>
+            <div class="card floating" id="terms">
+                <h2>📜 Terms of Service</h2>
+                <p>Play fairly, respect players, and keep it fun!</p>
+            </div>
+        </div>
+
+    <form action="{{ url_for('report') }}" method="POST">
+        <button class="report-btn" type="submit">📢 Report an Issue</button>
+    </form>
+
+        <div class="toggle-switch">
+            <label>🌞 Dark Mode</label>
+            <input type="checkbox" id="modeSwitch">
+            <label>🌙 Light Mode</label>
+        </div>
+
+        <div class="voice-command">
+            <button id="voiceBtn">🎤 Voice Control</button>
+        </div>
+    </div>
+</body>
+</html>
