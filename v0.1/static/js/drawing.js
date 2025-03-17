@@ -384,6 +384,8 @@ addText(Bcnvs, "40", "center", "Back", 75, 50);
 // Timer Text 
 addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
 
+loadLeaderboard();
+
 // ---Socketio---
 
 var socketio = io();
