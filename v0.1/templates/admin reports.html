@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScribbleVerse - Admin Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin reports.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>ScribbleVerse Admin - User Reports</h1>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="issueType">Filter by issue type:</label>
+                <select id="issueType" onchange="filterReports()">
+                    <option value="all">All Issues</option>
+                    <option value="Bug">Bugs</option>
+                    <option value="UI Issue">UI Issues</option>
+                    <option value="Gameplay">Gameplay</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <button onclick="window.location.href='/'">Back to Home</button>
+        </div>
+        
+        {% if reports %}
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Issue Type</th>
+                        <th>Description</th>
+                        <th>Date Submitted</th>
+                    </tr>
+                </thead>
+                <tbody id="reportsList">
+                    {% for report in reports %}
+                        <tr data-issue-type="{{ report.issue_type }}">
+                            <td>{{ report.id }}</td>
+                            <td>{{ report.username }}</td>
+                            <td>{{ report.email }}</td>
+                            <td>{{ report.issue_type }}</td>
+                            <td class="issue-description">{{ report.issue_description }}</td>
+                            <td>{{ report.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-reports">
+                <p>No reports have been submitted yet.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin reports.js') }}"></script>
+</body>
+</html>

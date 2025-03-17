@@ -1,6 +1,5 @@
 # Use this to run the server:
-# python init_db.py (if there is no instance folder)
-# flask --app main.py run --host=0.0.0.0 --port=5000
+# python main.py
 
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
@@ -70,7 +69,13 @@ class Round(db.Model):
     current_time = db.Column(db.Integer, default=0)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
 
-
+class Report(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    issue_type = db.Column(db.String(50), nullable=False)
+    issue_description = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.now())
 
 # ----------------- API Endpoints ----------------- #
 # Example use of the API:
@@ -339,6 +344,11 @@ def about():
 def report():
     return render_template("lrp.html")
 
+@app.route("/admin/reports", methods=["GET"])
+def admin_reports():
+    reports = Report.query.order_by(Report.timestamp.desc()).all()
+    return render_template("admin reports.html", reports=reports)
+
 # ----------------- Real Time Connection ----------------- #
 
 @socketio.on("message")
@@ -392,8 +402,20 @@ def reported(data):
     issue_type = data["issue_type"]
     issue_desc = data["issue_description"]
 
-    # You can save these into the database, the variable names are self-explanatory.
-    # If you want to see where these values are coming from, check lrp.html.
+    report = Report(
+        username=name,
+        email=email,
+        issue_type=issue_type,
+        issue_description=issue_desc
+    )
+
+    try:
+        db.session.add(report)
+        db.session.commit()
+        print("Report added to database.")
+    except Exception as e:
+        db.session.rollback()
+        print("Error adding report to database:", e)
 
 @socketio.on("connect")
 def connect(auth):
@@ -472,8 +494,9 @@ def disconnect():
     socketio.emit("update_players", rooms[room]["players"])
 
 if __name__ == "__main__":
-    socketio.run(app, debug = True)
-
-# Use this to run the server:
-# python init_db.py (if there is no instance folder)
-# flask --app main.py run --host=0.0.0.0 --port=5000
+    # Create database tables if they don't exist
+    with app.app_context():
+        db.create_all()
+        print("Database initialized successfully!")
+    
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
