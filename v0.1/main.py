@@ -1,19 +1,23 @@
 # Use this to run the server:
-# python init_db.py (if there is no instance folder)
+# python init_db.py (if there is no instance folder or if I said I made a change to the database)
 # flask --app main.py run --host=0.0.0.0 --port=5000
 
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import random
+import base64
 from string import ascii_uppercase
 import json
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "test"
+app.config["SESSION_TYPE"] = "filesystem"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+Session(app)
 
 socketio = SocketIO(app)
 api = Api(app)
@@ -69,7 +73,16 @@ class Round(db.Model):
     current_time = db.Column(db.Integer, default=0)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
 
-
+class Report(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    issue_type = db.Column(db.String(50), nullable=False)
+    issue_description = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.now())
+    
+    def __repr__(self):
+        return f"<Report {self.id}: {self.issue_type} by {self.username}>"
 
 # ----------------- API Endpoints ----------------- #
 # Example use of the API:
@@ -230,6 +243,7 @@ def index():
 
 @app.route("/room", methods=["GET", "POST"])
 def room():
+
     name = session.get("name")
     if not name:
         return redirect(url_for("index"))
@@ -256,7 +270,6 @@ def room():
     
     if 'players' not in rooms[room]:
         rooms[room]["players"] = []
-        rooms[room]["sid_map"] = {}
 
     if name not in rooms[room]["players"]:
         rooms[room]["players"].append(name)
@@ -282,8 +295,13 @@ def create_room():
     room = generate_unique_code(4)
     rooms[room] = {
         "members": 0,
-        "messages": []
+        "messages": [],
+        "maxPlayers": 0,
+        "rounds": 0,
+        "roundDuration": 0,
+        "customWordsList": []
     }
+
     session["room"] = room
 
     if request.method == "POST":
@@ -305,12 +323,8 @@ def create_room():
             rooms[room]["roundDuration"] = roundDuration
         except:
             rooms[room]["roundDuration"] = 60
-        defaultWords = ['word1', 'word2', 'word3']
-        customWords = json.loads(request.form.get("customWords"))
-        defaultWords.extend(customWords)
-        rooms[room]['wordList'] = defaultWords
-        print(rooms[room])
-        return jsonify({'status': 'success', 'room': room})
+
+        rooms[room]["customWordsList"] = request.form.get("customWords")
 
     return render_template("create room.html", code=room, messages=rooms[room]["messages"])
 
@@ -320,7 +334,44 @@ def join_room(room):
 
 @app.route("/game", methods=["GET", "POST"])
 def game():
-    return render_template("drawing.html")
+    room = session.get("room")
+    if room is None or session.get("name") is None or room not in rooms:
+        print(room)
+        print(session.get("name"))
+        print(room in rooms)
+        print("Room is missing.")
+        return redirect(url_for("index"))
+
+    data = {
+        "max_players": rooms[room]["maxPlayers"],
+        "rounds": rooms[room]["rounds"],
+        "round_duration": rooms[room]["roundDuration"],
+        "custom_words": rooms[room]["customWordsList"]
+    }
+
+    for key in data.keys():
+        print(f"{key}: {data[key]}")
+
+    return render_template("drawing.html", parameters=data)
+
+@app.route("/leaderboard", methods=["GET", "POST"])
+def leaderboard():
+    return render_template("leaderboard.html")
+
+@app.route("/about", methods=["GET", "POST"])
+def about():
+    return render_template("frp.html")
+
+@app.route("/report", methods=["GET", "POST"])
+def report():
+    return render_template("lrp.html")
+
+@app.route("/admin/reports", methods=["GET"])
+def admin_reports():
+    reports = Report.query.order_by(Report.timestamp.desc()).all()
+    return render_template("admin_reports.html", reports=reports)
+
+# ----------------- Real Time Connection ----------------- #
 
 @app.route("/guess", methods=["GET", "POST"])
 def guess():
@@ -356,47 +407,129 @@ def message(data):
 
 @socketio.on("start")
 def startGame():
-    room = session.get('room')
-    for sid, player in rooms[room]['sid_map'].items():
-        if player == rooms[room]['players'][0]:
-            socketio.emit('redirect', '/game', room=sid)
-        else:
-            socketio.emit('redirect', '/guess', room=sid)
-
-@socketio.on("ready")
-def sendWords():
-    room = session.get('room')
-    words = []
-    wordList = rooms[room]['wordList'].copy()
-    for i in range(3):
-        word = random.choice(wordList)
-        words.append(word)
-        wordList.remove(word)
-    socketio.emit('chooseWords', words)
+    name = session.get("name")
+    room = session.get("room")
+    if room not in rooms or len(rooms[room]["players"]) == 0:
+        return url_for("index")
     
-@socketio.on('wordSelected')
-def receiveWord(word):
-    socketio.emit('wordSelected', word)
+    first_drawer = rooms[room]["players"][0]
+    content = {
+        "username": name,
+        "drawer": first_drawer
+    }
+    
+    print("Starting...")
+    socketio.emit("start")
+
+@socketio.on("request_drawer")
+def request_drawer():
+    name = session.get("name")
+    room = session.get("room")
+    if room not in rooms or len(rooms[room]["players"]) == 0:
+        return url_for("index")
+    
+    first_drawer = rooms[room]["players"][0]
+    content = {
+        "username": name,
+        "drawer": first_drawer
+    }
+    
+    print("Updating drawer...")
+    socketio.emit("update_drawer", content)
+
+@socketio.on("new_round")
+def new_round():
+    room = session.get("room")
+    if room not in rooms:
+        return
+    
+    current_drawer = rooms[room].get("drawer", None)
+    players = rooms[room]["players"]
+
+    if current_drawer and current_drawer in players:
+        current_index = players.index(current_drawer)
+        next_drawer = players[(current_index + 1) % len(players)]
+    else:
+        next_drawer = players[0]
+
+    rooms[room]["drawer"] = next_drawer
+    socketio.emit("update_drawer", {"drawer": next_drawer}, to=room)
+
+@socketio.on("reported")
+def reported(data):
+    print(data)
+
+    name = data["username"]
+    email = data["email"]
+    issue_type = data["issue_type"]
+    issue_desc = data["issue_description"]
+
+    report = Report(
+        username=name,
+        email=email,
+        issue_type=issue_type,
+        issue_description=issue_desc
+    )
+
+    try:
+        db.session.add(report)
+        db.session.commit()
+        print("Report added to database.")
+    except Exception as e:
+        db.session.rollback()
+        print("Error adding report to database:", e)
+
+    # You can save these into the database, the variable names are self-explanatory.
+    # If you want to see where these values are coming from, check lrp.html.
 
 @socketio.on("connect")
 def connect(auth):
+    try:
+        room = session.get("room")
+        name = session.get("name")
+        if not room or not name:
+            return
+        if room not in rooms:
+            leave_room(room)
+            return
+        
+        join_room(room)
+        send({"name": name, "message": "has entered the room"}, to=room)
+
+        if name not in rooms[room]["players"]:
+            rooms[room]["players"].append(name)
+            print("List of Players:", rooms[room]["players"])
+
+        rooms[room]["members"] += 1
+        print(f"{name} joined room {room}")
+        print(f"Assigning username {name} to session ID: {request.sid}")
+
+        socketio.emit("username", rooms[room]["players"]) # Sends an array containing all usernames in a lobby.
+        socketio.emit("individual_username", name, room=request.sid) # Sends a string consisting of an individual username.
+    except:
+        print("Something went wrong.")
+
+@socketio.on("drawing_update")
+def drawing_update(data):
+    print("Sending drawing update...")
     room = session.get("room")
-    name = session.get("name")
-    if not room or not name:
-        return
-    if room not in rooms:
-        leave_room(room)
-        return
-    
-    join_room(room)
-    send({"name": name, "message": "has entered the room"}, to=room)
 
-    if name not in rooms[room]["players"]:
-        rooms[room]["players"].append(name)
-    rooms[room]["sid_map"][request.sid] = name
+    image_data = data.get("image", "")
+    if not image_data.startswith("data:image/png;base64,"):
+        print("Error: Invalid Base64 format!")
+        return
 
-    rooms[room]["members"] += 1
-    print(f"{name} joined room {room}")
+    try:
+        base64_data = image_data.split(",")[1]
+        base64.b64decode(base64_data)
+    except Exception as error:
+        print("Error decoding Base64:", error)
+        return
+
+    print(f"Received drawing from {session.get('name')} in room {room}.")
+
+    socketio.emit("display_drawing", {"image": data["image"]})
+    print("Emitted display_drawing event to room:", room)
 
     socketio.emit("username", rooms[room]["players"])
 
@@ -417,24 +550,33 @@ def new_round(data):
 
 @socketio.on("disconnect")
 def disconnect():
-    room = session.get("room")
-    name = session.get("name")
-    leave_room(room)
+    try:
+        room = session.get("room")
+        name = session.get("name")
+        leave_room(room)
 
-    if room in rooms and name in rooms[room]["players"]:
-        rooms[room]["players"].remove(name)
-        rooms[room]["members"] -= 1
-        if rooms[room]["members"] <= 0:
-            del rooms[room]
-    
-    send({"name": name, "message": "has left the room"}, to=room)
-    print(f"{name} has left the room {room}")
+        if room in rooms and name in rooms[room]["players"]:
+            rooms[room]["players"].remove(name)
+            rooms[room]["members"] -= 1
+            if rooms[room]["members"] <= 0:
+                del rooms[room]
+        
+        send({"name": name, "message": "has left the room"}, to=room)
+        print(f"{name} has left the room {room}")
+
+        socketio.emit("update_players", rooms[room]["players"])
+    except:
+        print("Something went wrong.")
 
     socketio.emit("update_players", rooms[room]["players"])
 
 if __name__ == "__main__":
-    socketio.run(app, debug = True)
+    # Create database tables if they don't exist
+    with app.app_context():
+        db.create_all()
+        print("Database initialized successfully!")
+    
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
 
 # Use this to run the server:
-# python init_db.py (if there is no instance folder)
-# flask --app main.py run --host=0.0.0.0 --port=5000
+# python main.py
