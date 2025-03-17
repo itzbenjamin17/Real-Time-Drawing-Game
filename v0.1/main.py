@@ -7,6 +7,7 @@ from flask_socketio import join_room, leave_room, send, SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import random
+import base64
 from string import ascii_uppercase
 import json
 
@@ -430,6 +431,28 @@ def new_round(data):
             socketio.emit('redirect', '/game', room=sid)
         else:
             socketio.emit('redirect', '/guess', room=sid)
+
+@socketio.on("drawing_update")
+def drawing_update(data):
+    print("Sending drawing update...")
+    room = session.get("room")
+
+    image_data = data.get("image", "")
+    if not image_data.startswith("data:image/png;base64,"):
+        print("Error: Invalid Base64 format!")
+        return
+
+    try:
+        base64_data = image_data.split(",")[1]
+        base64.b64decode(base64_data)
+    except Exception as error:
+        print("Error decoding Base64:", error)
+        return
+
+    print(f"Received drawing from {session.get('name')} in room {room}.")
+
+    socketio.emit("display_drawing", {"image": data["image"]})
+    print("Emitted display_drawing event to room:", room)
 
 @socketio.on("disconnect")
 def disconnect():
