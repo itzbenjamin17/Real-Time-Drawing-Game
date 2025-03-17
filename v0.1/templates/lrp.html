@@ -18,10 +18,10 @@
             let counter = document.getElementById("char_counter");
             counter.textContent = desc.value.length + "/250";
         }
-
     </script>
 </head>
 <body>
+    <div class="background-animation"></div>
     <div class="container">
         <h1 class="title">Report an Issue</h1>
         <form onsubmit="sendReport()">
@@ -44,10 +44,9 @@
             <p id="char_counter">0/250</p>
 
             <button type="submit">Submit</button>
+            <button type="button" onclick="window.location.href='/'">Back to Home</button>
         </form>
     </div>
-</body>
-</html>
 
 <script text="text/javascript">
     var socketio = io();
@@ -68,6 +67,12 @@
         console.log(username, email, issue_type, issue_description);
 
         socketio.emit("reported", {"username": username, "email": email, "issue_type": issue_type, "issue_description": issue_description});
+        
+        // Redirect back to home after reporting
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
     }
-
 </script>
+</body>
+</html>
