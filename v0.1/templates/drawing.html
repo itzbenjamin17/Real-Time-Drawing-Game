@@ -75,6 +75,35 @@
 </html>
 
 <script type="text/javascript">
+  const gameConfig = {{ parameters | tojson }};
+  
+  const maxPlayers = gameConfig.max_players;
+  const rounds = gameConfig.rounds;
+  const roundDuration = gameConfig.round_duration;
+  const customWords = JSON.parse(gameConfig.custom_words);
+
+  console.log("Custom Words:", customWords);
+
+  let guessWords = ["horse", "suitcase", "rain", "socks", "grapes",
+                    "skateboard", "dream", "cat", "fly", "bark",
+                    "solar system", "hip", "fist", "fruit", "saltwater",
+                    "penguin", "trap", "glove", "tail", "hour", "crust",
+                    "lullaby", "geyser", "rival", "exponential", "haberdashery",
+                    "plot", "camera", "sun", "grandpa", "detail"];
+
+  customWords.forEach(word => {
+    guessWords.push(word);
+  });
+
+  console.log("Max Players:", maxPlayers);
+  console.log("Rounds:", rounds);
+  console.log("Round Duration:", roundDuration);
+  console.log("Custom Words:", customWords);
+  console.log("Guessing Words:", guessWords);
+</script>
+
+
+<script type="text/javascript">
   var socketio = io();
 
   const messages = document.getElementById("messages");
@@ -116,7 +145,7 @@
   socketio.on("message", (data) => {
       console.log("Received Message:", data);
       createMessage(data.name, data.message);
-      console.log("Still connected...")
+      console.log("Still connected...");
   });
 
   // Canvas Display
