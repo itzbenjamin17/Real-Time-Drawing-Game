@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ScribbleVerse - Advanced Reporting</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/frp_css.css') }}">
-    <script defer src="{{ url_for('static', filename='js/frp_script.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/particles.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/shader_bg.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/speech_control.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/neon_text.js') }}"></script>
+    <script defer src="frp_script.js"></script>
+    <script defer src="particles.js"></script>
+    <script defer src="shader_bg.js"></script>
+    <script defer src="speech_control.js"></script>
+    <script defer src="neon_text.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
 </head>
 <body>
-    <div class="background-animation"></div>
+    <canvas id="shaderCanvas"></canvas>
+    <div id="particles-js"></div>
     
     <div class="container">
         <h1 class="title neon-text">🚀 ScribbleVerse Reporting</h1>
@@ -42,11 +43,6 @@
 
         <div class="voice-command">
             <button id="voiceBtn">🎤 Voice Control</button>
-        </div>
-        
-        <div class="dev-corner">
-            <span class="dev-label">dev only</span>
-            <button onclick="window.location.href='{{ url_for('admin_reports') }}'" class="dev-button">View Reports</button>
         </div>
     </div>
 </body>
