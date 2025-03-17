@@ -220,8 +220,8 @@ window.onload = adjustTextArea;
 // Start Timer
 timer = setInterval(runTimer, 1000)
 
-var socket = io();
+var socketio = io();
 
-socket.on('redirect', (url) => {
+socketio.on('redirect', (url) => {
     window.location.href = url;
 });

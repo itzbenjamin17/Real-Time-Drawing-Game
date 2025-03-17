@@ -5,6 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="thing.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SkribbleVerse</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+      integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+      crossorigin="anonymous"
+></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/drawing.css') }}">
   </head>
   <body style="background-image: linear-gradient(to right, rgb(90, 111, 253) , rgb(247, 102, 200));"> <!--Background-->
@@ -60,6 +65,19 @@
       Your browser does not support the HTML canvas tag.
     </canvas>
     </div>
+
+    <!-- Modal for word selection -->
+    <div id="word-selection-modal" class="modal">
+      <div class="modal-content">
+        <h2>Choose a Word</h2>
+        <ul id="word-list">
+          <!-- The words will be dynamically inserted here -->
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Background dimming overlay -->
+    <div id="overlay" class="overlay"></div>
 
     <script src="{{ url_for('static', filename='js/drawing.js') }}"></script>
   </body>

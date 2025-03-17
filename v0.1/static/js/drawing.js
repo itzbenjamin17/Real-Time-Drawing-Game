@@ -339,8 +339,30 @@ addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
 // Start Timer
 timer = setInterval(runTimer, 1000);
 
-var socket = io();
+var socketio = io();
 
-socket.on('redirect', (url) => {
+window.onload = function() {
+    socketio.emit('ready')
+}
+
+socketio.on('redirect', (url) => {
     window.location.href = url;
+});
+
+socketio.on('chooseWords', (words) => {
+    const wordList = document.getElementById('word-list');
+    wordList.innerHTML = '';
+    words.forEach((word) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = word;
+        listItem.onclick = function() {
+            socketio.emit('wordSelected', word);
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('word-selection-modal').style.display = 'none';
+        };
+        wordList.appendChild(listItem);
+    });
+
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('word-selection-modal').style.display = 'block';
 });

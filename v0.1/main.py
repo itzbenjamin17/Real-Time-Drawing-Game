@@ -359,11 +359,24 @@ def startGame():
     room = session.get('room')
     for sid, player in rooms[room]['sid_map'].items():
         if player == rooms[room]['players'][0]:
-            print(True)
             socketio.emit('redirect', '/game', room=sid)
         else:
-            print(False)
             socketio.emit('redirect', '/guess', room=sid)
+
+@socketio.on("ready")
+def sendWords():
+    room = session.get('room')
+    words = []
+    wordList = rooms[room]['wordList'].copy()
+    for i in range(3):
+        word = random.choice(wordList)
+        words.append(word)
+        wordList.remove(word)
+    socketio.emit('chooseWords', words)
+    
+@socketio.on('wordSelected')
+def receiveWord(word):
+    print(word)
 
 @socketio.on("connect")
 def connect(auth):
