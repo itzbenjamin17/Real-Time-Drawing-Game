@@ -20,6 +20,16 @@ api = Api(app)
 db = SQLAlchemy(app)
 
 rooms = {}
+DEFAULT_WORDS = [
+    "apple", "banana", "cat", "dog", "elephant", "fish", "giraffe", "house",
+    "igloo", "jacket", "kite", "lion", "monkey", "notebook", "orange", "penguin",
+    "queen", "robot", "snake", "tree", "umbrella", "violin", "watermelon",
+    "xylophone", "yacht", "zebra", "airplane", "beach", "castle", "donut",
+    "earth", "flower", "guitar", "hamburger", "island", "jellyfish", "kangaroo",
+    "lemon", "mountain", "nighttime", "octopus", "pizza", "rainbow", "snowman",
+    "telephone", "unicorn", "volcano", "wizard", "yogurt", "zipper"
+]
+
 
 def generate_unique_code(Length):
     while True:
@@ -33,6 +43,8 @@ def generate_unique_code(Length):
     return code
 
 # ----------------- Database Models ----------------- #
+
+
 class Room(db.Model):
     """
     Room table:
@@ -50,8 +62,11 @@ class Room(db.Model):
     num_of_players = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=db.func.now())
 
-    players = db.relationship('Player', backref='room', cascade="all, delete-orphan", lazy=True)
-    rounds = db.relationship('Round', backref='room', cascade="all, delete-orphan", lazy=True)
+    players = db.relationship('Player', backref='room',
+                              cascade="all, delete-orphan", lazy=True)
+    rounds = db.relationship('Round', backref='room',
+                             cascade="all, delete-orphan", lazy=True)
+
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -59,6 +74,7 @@ class Player(db.Model):
     score = db.Column(db.Integer, default=0)
     is_drawing = db.Column(db.Boolean, default=False)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+
 
 class Round(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -68,6 +84,7 @@ class Round(db.Model):
     time_to_guess = db.Column(db.Integer, default=60)
     current_time = db.Column(db.Integer, default=0)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+
 
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -94,22 +111,27 @@ class Report(db.Model):
 #           console.error("Error:", error.message);
 #         });
 
+
 class RoomView(Resource):
     '''
     Returns a list of all rooms.
     '''
+
     def get(self):
         rooms = Room.query.all()
         return jsonify([{"id": room.id, "code": room.code, "host": room.host} for room in rooms])
+
 
 class ValidateRoomCode(Resource):
     ''' 
     Input: A room code
     Returns {"valid": true}, 200 if room exists, else {"valid": false}, 404.
     '''
+
     def get(self, code):
         room_exists = Room.query.filter_by(code=code).first() is not None
         return {"valid": room_exists}, 200 if room_exists else 404
+
 
 class CreateRoom(Resource):
     '''
@@ -117,13 +139,16 @@ class CreateRoom(Resource):
     Posts a room in the database and returns the room's id and code, along with a 201 status code. (Meaning created)
     If no num_of_rounds is provided, it defaults to 3.
     '''
+
     def post(self):
         data = request.get_json()
         room_code = generate_unique_code(6)
-        new_room = Room(code=room_code, host=data.get("host"), num_of_rounds=data.get("num_of_rounds", 3))
+        new_room = Room(code=room_code, host=data.get("host"),
+                        num_of_rounds=data.get("num_of_rounds", 3))
         db.session.add(new_room)
         db.session.commit()
         return {"id": new_room.id, "code": new_room.code}, 201
+
 
 class GetRoom(Resource):
     '''
@@ -131,11 +156,13 @@ class GetRoom(Resource):
     Returns the room's id, code, and host, along with a 200 status code.
     If the room does not exist, returns {"error": "Room not found"}, 404.
     '''
+
     def get(self, code):
         room = Room.query.filter_by(code=code).first()
         if not room:
             return {"error": "Room not found"}, 404
         return {"id": room.id, "code": room.code, "host": room.host}, 200
+
 
 class AddPlayer(Resource):
     '''
@@ -144,6 +171,7 @@ class AddPlayer(Resource):
     If the room does not exist, returns {"error": "Room not found"}, 404.
     If the room is full, returns {"error": "Room is full"}, 400.
     '''
+
     def post(self):
         data = request.get_json()
         room_code = data.get("room")
@@ -152,12 +180,13 @@ class AddPlayer(Resource):
             return {"error": "Room not found"}, 404
         if room.num_of_players >= 10:
             return {"error": "Room is full"}, 400
-        
+
         new_player = Player(name=data.get("name"), room_id=room.id)
         room.num_of_players += 1
         db.session.add(new_player)
         db.session.commit()
         return {"id": new_player.id}, 201
+
 
 class GetPlayersInRoom(Resource):
     '''
@@ -165,15 +194,18 @@ class GetPlayersInRoom(Resource):
     Returns a list of players in the room, along with a 200 status code.
     If the room does not exist, returns {"error": "Room not found"}, 404.
     '''
+
     def get(self, room_code):
         room = Room.query.filter_by(code=room_code).first()
-        
+
         if not room:
             return {"error": "Room not found"}, 404
-        
+
         players = Player.query.filter_by(room_id=room.id).all()
-        players_data = [{"id": player.id, "name": player.name, "score": player.score} for player in players]      
+        players_data = [{"id": player.id, "name": player.name,
+                         "score": player.score} for player in players]
         return jsonify(players_data)
+
 
 # Register API endpoints with Flask-RESTful
 api.add_resource(RoomView, '/api/rooms/')
@@ -181,11 +213,13 @@ api.add_resource(ValidateRoomCode, '/api/validate-room-code/<string:code>/')
 api.add_resource(CreateRoom, '/api/create-room/')
 api.add_resource(GetRoom, '/api/get-room/<string:code>/')
 api.add_resource(AddPlayer, '/api/add-player/')
-api.add_resource(GetPlayersInRoom, '/api/get-players-in-room/<string:room_code>/')
+api.add_resource(GetPlayersInRoom,
+                 '/api/get-players-in-room/<string:room_code>/')
 
 # ----------------- Routes ----------------- #
 
-@app.route("/", methods = ["POST", "GET"])
+
+@app.route("/", methods=["POST", "GET"])
 def index():
     session.clear()
 
@@ -196,7 +230,7 @@ def index():
         pass
 
     if request.method == "POST":
-        
+
         name = request.form.get("name")
         code = request.form.get("code")
         join = request.form.get("join", False)
@@ -211,28 +245,29 @@ def index():
 
         if not name:
             return render_template("index.html", error="Please enter a name.", code=code, name=name)
-        
+
         if join != False:
-            if not code:#and not code:
+            if not code:  # and not code:
                 return render_template("index.html", error="Please enter a room code.", code=code, name=name)
-            
+
             if rooms[room]["members"] > rooms[room]["maxPlayers"]:
                 return render_template("index.html", error="Room is full", code=code, name=name)
-            
+
             if name in rooms[room]["players"]:
                 return render_template("index.html", error="Username is already taken", code=code, name=name)
-                
+
         if create != False:
             return redirect(url_for("create_room"))
-        
+
         if code not in rooms:
             return render_template("index.html", error="Room does not exist.", code=code, name=name)
-        
+
         print("After setting session:", session)
 
         return redirect(url_for("room"))
 
     return render_template("index.html")
+
 
 @app.route("/room", methods=["GET", "POST"])
 def room():
@@ -241,7 +276,7 @@ def room():
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        room = request.form.get("code")        
+        room = request.form.get("code")
 
         if not room:
             room = generate_unique_code(4)
@@ -259,7 +294,7 @@ def room():
         print(room in rooms)
         print("Room is missing.")
         return redirect(url_for("index"))
-    
+
     if 'players' not in rooms[room]:
         rooms[room]["players"] = []
         rooms[room]["sid_map"] = {}
@@ -268,7 +303,7 @@ def room():
         rooms[room]["players"].append(name)
 
     rooms[room]["members"] += 1
-    
+
     print(f"Emitting players list to room {room}: {rooms[room]['players']}")
     socketio.emit("username", rooms[room]["players"])
 
@@ -277,6 +312,7 @@ def room():
     print(f"Players: {rooms[room]['players']}")
 
     return render_template("room.html", code=room, messages=rooms[room]["messages"], host=host)
+
 
 @app.route("/create-room", methods=["GET", "POST"])
 def create_room():
@@ -311,38 +347,48 @@ def create_room():
             rooms[room]["roundDuration"] = roundDuration
         except:
             rooms[room]["roundDuration"] = 60
-        defaultWords = ['word1', 'word2', 'word3']
-        customWords = json.loads(request.form.get("customWords"))
-        defaultWords.extend(customWords)
-        rooms[room]['wordList'] = defaultWords
-        print(rooms[room])
+
+        word_list = DEFAULT_WORDS.copy()
+        custom_words = json.loads(request.form.get("customWords", "[]"))
+        if custom_words:
+            word_list.extend(custom_words)
+
+        rooms[room]['wordList'] = word_list
+        print(f"Room {room} created with {len(word_list)} words")
         return jsonify({'status': 'success', 'room': room})
 
     return render_template("create room.html", code=room, messages=rooms[room]["messages"])
+
 
 @app.route("/join-room", methods=["POST"])
 def join_room(room):
     return render_template("room.html", code=room, messages=rooms[room]["messages"])
 
+
 @app.route("/game", methods=["GET", "POST"])
 def game():
     return render_template("drawing.html")
+
 
 @app.route("/guess", methods=["GET", "POST"])
 def guess():
     return render_template("Guessing.html")
 
+
 @app.route("/leaderboard", methods=["GET", "POST"])
 def leaderboard():
     return render_template("leaderboard.html")
+
 
 @app.route("/about", methods=["GET", "POST"])
 def about():
     return render_template("frp.html")
 
+
 @app.route("/report", methods=["GET", "POST"])
 def report():
     return render_template("lrp.html")
+
 
 @app.route("/admin/reports", methods=["GET"])
 def admin_reports():
@@ -350,6 +396,7 @@ def admin_reports():
     return render_template("admin reports.html", reports=reports)
 
 # ----------------- Real Time Connection ----------------- #
+
 
 @socketio.on("message")
 def message(data):
@@ -369,6 +416,7 @@ def message(data):
     print("Messages:", rooms[room]["messages"])
     print(f"{session.get('name')} said: {data['data']}")
 
+
 @socketio.on("start")
 def startGame():
     room = session.get('room')
@@ -378,20 +426,30 @@ def startGame():
         else:
             socketio.emit('redirect', '/guess', room=sid)
 
+
 @socketio.on("ready")
 def sendWords():
     room = session.get('room')
     words = []
+
+    if 'wordList' not in rooms[room] or not rooms[room]['wordList']:
+        rooms[room]['wordList'] = DEFAULT_WORDS.copy()
+
     wordList = rooms[room]['wordList'].copy()
-    for i in range(3):
+
+    for i in range(min(3, len(wordList))):
         word = random.choice(wordList)
         words.append(word)
         wordList.remove(word)
+
+    print(f"Sending word options: {words}")
     socketio.emit('chooseWords', words)
-    
+
+
 @socketio.on('wordSelected')
 def receiveWord(word):
     socketio.emit('wordSelected', word)
+
 
 @socketio.on("reported")
 def reported(data):
@@ -417,6 +475,7 @@ def reported(data):
         db.session.rollback()
         print("Error adding report to database:", e)
 
+
 @socketio.on("connect")
 def connect(auth):
     room = session.get("room")
@@ -426,7 +485,7 @@ def connect(auth):
     if room not in rooms:
         leave_room(room)
         return
-    
+
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
 
@@ -438,6 +497,7 @@ def connect(auth):
     print(f"{name} joined room {room}")
 
     socketio.emit("username", rooms[room]["players"])
+
 
 @socketio.on("new_round")
 def new_round(data):
@@ -453,6 +513,7 @@ def new_round(data):
             socketio.emit('redirect', '/game', room=sid)
         else:
             socketio.emit('redirect', '/guess', room=sid)
+
 
 @socketio.on("drawing_update")
 def drawing_update(data):
@@ -476,6 +537,7 @@ def drawing_update(data):
     socketio.emit("display_drawing", {"image": data["image"]})
     print("Emitted display_drawing event to room:", room)
 
+
 @socketio.on("disconnect")
 def disconnect():
     room = session.get("room")
@@ -487,16 +549,17 @@ def disconnect():
         rooms[room]["members"] -= 1
         if rooms[room]["members"] <= 0:
             del rooms[room]
-    
+
     send({"name": name, "message": "has left the room"}, to=room)
     print(f"{name} has left the room {room}")
 
     socketio.emit("update_players", rooms[room]["players"])
+
 
 if __name__ == "__main__":
     # Create database tables if they don't exist
     with app.app_context():
         db.create_all()
         print("Database initialized successfully!")
-    
+
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
