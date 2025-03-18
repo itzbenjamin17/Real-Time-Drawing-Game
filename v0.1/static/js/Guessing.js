@@ -24,6 +24,8 @@ let score4 = 239999;
 let username5 = "shelllll";
 let score5 = 2399999;
 
+let numOfPlayers = 5;
+
 // ---Define the Canvases---
 // Back Canvas
 var backCanvas = document.getElementById("BackCanvas");
