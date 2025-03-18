@@ -6,8 +6,8 @@ let colour = "black";
 
 let mode = "pencil";
 
-let minutes = "0";
-let tenSeconds = "1";
+let minutes = "3";
+let tenSeconds = "0";
 let seconds = "0";
 
 let isDrawing = false;
@@ -33,6 +33,8 @@ let score4 = 239999;
 
 let username5 = "shelllll";
 let score5 = 2399999;
+
+let numOfPlayers = 5;
 
 // ---Images---
 const pencil = new Image();
@@ -62,10 +64,6 @@ var Lcnvs = leaderboardCanvas.getContext("2d");
 // Create Drawing Canvas
 var drawingCanvas = document.getElementById("DrawingCanvas");
 var Dcnvs = drawingCanvas.getContext("2d");
-
-// Chat Canvas
-var chatCanvas = document.getElementById("ChatCanvas");
-var CHcnvs = chatCanvas.getContext("2d");
 
 // Create Colour Choosing Canvas
 var coloursCanvas = document.getElementById("ColoursCanvas");
@@ -233,25 +231,19 @@ function toolsClick(mouseX) {
 // Update Timer
 function runTimer() {
     // Clear Tcnvs
-    TIcnvs.clearRect(0, 0, 150, 75);
+    TIcnvs.clearRect(0, 0, 250, 75);
 
     // Background
     TIcnvs.fillStyle = "#ffd296";
-    TIcnvs.fillRect(0, 0, 150, 75);
+    TIcnvs.fillRect(0, 0, 250, 75);
 
     // update timer
     if (seconds == "0") {
         if (tenSeconds == "0") {
             if (minutes == "0") {
-                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
                 console.log("Time's Up! The word was: " + word);
-                // Need to add logic to end the round and move on to the next
-                
-                // Store data (username, score, current round, etc.)
-
-                // Redirect to new round
-                socketio.emit("new_round");
             }
             else {
                 seconds = "9";
@@ -259,7 +251,7 @@ function runTimer() {
                 minutes = parseInt(minutes) - 1;
                 minutes = minutes.toString();
     
-                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
             }
         }
         else {
@@ -267,14 +259,14 @@ function runTimer() {
             tenSeconds = parseInt(tenSeconds) - 1;
             tenSeconds = tenSeconds.toString();
 
-            addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+            addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
         }
     }
     else {
         seconds = parseInt(seconds) - 1;
         seconds = seconds.toString();
 
-        addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+        addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
     }
 }
 
@@ -286,44 +278,144 @@ function stopTimer() {
 function loadLeaderboard() {
     // Load player list
 
-    // Draw the black outline
+    // 1st Place
     Lcnvs.strokeStyle = "black";
     Lcnvs.lineWidth = 2;
-    Lcnvs.strokeRect(10, 10, 130, 75); 
-    Lcnvs.strokeRect(10, 95, 130, 75);
-    Lcnvs.strokeRect(10, 185, 130, 75);
-    Lcnvs.strokeRect(10, 275, 130, 75);
-    Lcnvs.strokeRect(10, 365, 130, 75);
+    Lcnvs.strokeRect(10, 10, 130, 75);
 
-    // Draw the white background
     Lcnvs.fillStyle = "white";
     Lcnvs.fillRect(10, 10, 130, 75);
-    Lcnvs.fillRect(10, 95, 130, 75);
-    Lcnvs.fillRect(10, 185, 130, 75);
-    Lcnvs.fillRect(10, 275, 130, 75);
-    Lcnvs.fillRect(10, 365, 130, 75);
 
-    // Add the texts
     addText(Lcnvs, "20", "center", "1st", 75, 35);
     addText(Lcnvs, "20", "center", username1, 75, 55);
     addText(Lcnvs, "20", "center", score1.toString(), 75, 75);
 
-    addText(Lcnvs, "20", "center", "2nd", 75, 120);
-    addText(Lcnvs, "20", "center", username2, 75, 140);
-    addText(Lcnvs, "20", "center", score2.toString(), 75, 160);
+    if (numOfPlayers >= 2) {
+        // 2nd Place
+        Lcnvs.strokeStyle = "black";
+        Lcnvs.strokeRect(10, 95, 130, 75);
 
-    addText(Lcnvs, "20", "center", "3rd", 75, 210);
-    addText(Lcnvs, "20", "center", username3, 75, 230);
-    addText(Lcnvs, "20", "center", score3.toString(), 75, 250);
+        Lcnvs.fillStyle = "white";
+        Lcnvs.fillRect(10, 95, 130, 75);
 
-    addText(Lcnvs, "20", "center", "4th", 75, 300);
-    addText(Lcnvs, "20", "center", username4, 75, 320);
-    addText(Lcnvs, "20", "center", score4.toString(), 75, 340);
+        addText(Lcnvs, "20", "center", "2nd", 75, 120);
+        addText(Lcnvs, "20", "center", username2, 75, 140);
+        addText(Lcnvs, "20", "center", score2.toString(), 75, 160);
 
-    addText(Lcnvs, "20", "center", "5th", 75, 390);
-    addText(Lcnvs, "20", "center", username5, 75, 410);
-    addText(Lcnvs, "20", "center", score5.toString(), 75, 430);
+        if (numOfPlayers >= 3) {
+            // 3rd Place
+            Lcnvs.strokeStyle = "black";
+            Lcnvs.strokeRect(10, 185, 130, 75);
+
+            Lcnvs.fillStyle = "white";
+            Lcnvs.fillRect(10, 185, 130, 75);
+
+            addText(Lcnvs, "20", "center", "3rd", 75, 210);
+            addText(Lcnvs, "20", "center", username3, 75, 230);
+            addText(Lcnvs, "20", "center", score3.toString(), 75, 250);
+
+            if (numOfPlayers >= 4) {
+                // 4th Place
+                Lcnvs.strokeStyle = "black";
+                Lcnvs.strokeRect(10, 275, 130, 75);
+
+                Lcnvs.fillStyle = "white";
+                Lcnvs.fillRect(10, 275, 130, 75);
+
+                addText(Lcnvs, "20", "center", "4th", 75, 300);
+                addText(Lcnvs, "20", "center", username4, 75, 320);
+                addText(Lcnvs, "20", "center", score4.toString(), 75, 340);
+
+                if (numOfPlayers >= 5) {
+                    // 5th Place
+                    Lcnvs.strokeStyle = "black";
+                    Lcnvs.strokeRect(10, 365, 130, 75);
+
+                    Lcnvs.fillStyle = "white";
+                    Lcnvs.fillRect(10, 365, 130, 75);
+
+                    addText(Lcnvs, "20", "center", "5th", 75, 390);
+                    addText(Lcnvs, "20", "center", username5, 75, 410);
+                    addText(Lcnvs, "20", "center", score5.toString(), 75, 430);
+                }
+            }
+        }
+    }
 }
+
+// ---Socketio---
+
+var socketio = io();
+
+window.onload = function() {
+    socketio.emit('ready')
+}
+
+socketio.onAny((event, ...args) => {
+    console.log(`Received Event: ${event}`, args);
+});
+
+socketio.on("connect", () => {
+    console.log("Socket Connected!");
+});
+
+
+socketio.on('redirect', (url) => {
+    window.location.href = url;
+});
+
+// Detect when a message has been sent
+socketio.on("message", (data) => {
+    console.log("Received Message:", data);
+    createMessage(data.name, data.message);
+    console.log("Still connected...")
+});
+
+// Choosing Words
+socketio.on('chooseWords', (words) => {
+    const wordList = document.getElementById('word-list');
+    wordList.innerHTML = '';
+    words.forEach((word) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = word;
+        listItem.onclick = function() {
+            socketio.emit('wordSelected', word);
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('word-selection-modal').style.display = 'none';
+            timer = setInterval(runTimer, 1000);
+            addText(Wcnvs, "50", "center", word, 350, 55);
+        };
+        wordList.appendChild(listItem);
+    });
+
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('word-selection-modal').style.display = 'block';
+});
+
+// Display Message
+const createMessage = (name, msg) => {
+    const content = `
+    <div class="text">
+        <span>
+            <strong>${name}</strong>: ${msg}
+        </span>
+    </div>
+    `;
+    messages.innerHTML += content;
+    messages.scrollTop = messages.scrollHeight;
+};
+
+// Sending canvas data
+const sendDrawing = () => {
+    const canvas = document.getElementById("DrawingCanvas");
+    const dataURL = canvas.toDataURL();
+
+    console.log("Sending drawing update:", dataURL.slice(0, 50) + "...");
+    socketio.emit("drawing_update", {"image": dataURL});
+};
+
+// Sends an image of the canvas to all players every half-second.
+setInterval(sendDrawing, 500);
 
 // ---Event listeners---
 coloursCanvas.addEventListener("click", function(e) { 
@@ -355,11 +447,11 @@ Bcnvs.fillRect(0, 0, 150, 75);
 
 // Background for Word Canvas
 Wcnvs.fillStyle = "#ffd296";
-Wcnvs.fillRect(0, 0, 800, 75);
+Wcnvs.fillRect(0, 0, 700, 75);
 
 // Background for Timer Canvas
 TIcnvs.fillStyle = "#ffd296";
-TIcnvs.fillRect(0, 0, 150, 75);
+TIcnvs.fillRect(0, 0, 250, 75);
 
 // Background for Leaderboard Canvas
 Lcnvs.fillStyle = "#ffd296";
@@ -367,11 +459,7 @@ Lcnvs.fillRect(0, 0, 150, 450);
 
 // White Background for Drawing Canvas
 Dcnvs.fillStyle = "white";
-Dcnvs.fillRect(0, 0, 800, 500);
-
-// Background for Chat Canvas
-CHcnvs.fillStyle = "#ffd296";
-CHcnvs.fillRect(0, 0, 150, 450);
+Dcnvs.fillRect(0, 0, 700, 500);
 
 // When these images load, put them on the screen
 pencil.onload = function () {
@@ -405,56 +493,6 @@ drawCircle(760, "black");
 addText(Bcnvs, "40", "center", "Back", 75, 50);
 
 // Timer Text 
-addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
 
 loadLeaderboard();
-
-// ---Socketio---
-
-var socketio = io();
-
-window.onload = function() {
-    socketio.emit('ready')
-}
-
-socketio.onAny((event, ...args) => {
-    console.log(`Received Event: ${event}`, args);
-});
-
-socketio.on("connect", () => {
-    console.log("Socket Connected!");
-});
-
-socketio.on('redirect', (url) => {
-    window.location.href = url;
-});
-
-socketio.on('chooseWords', (words) => {
-    const wordList = document.getElementById('word-list');
-    wordList.innerHTML = '';
-    words.forEach((word) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = word;
-        listItem.onclick = function() {
-            socketio.emit('wordSelected', word);
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('word-selection-modal').style.display = 'none';
-            timer = setInterval(runTimer, 1000);
-            addText(Wcnvs, "50", "center", word, 400, 50);
-        };
-        wordList.appendChild(listItem);
-    });
-
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('word-selection-modal').style.display = 'block';
-});
-
-// Sending canvas data
-const sendDrawing = () => {
-    const canvas = document.getElementById("DrawingCanvas");
-    const dataURL = canvas.toDataURL();
-
-    console.log("Sending drawing update:", dataURL.slice(0, 50) + "...");
-    socketio.emit("drawing_update", {"image": dataURL});
-};
-setInterval(sendDrawing, 500); // Sends an image of the canvas to all players every half-second.
