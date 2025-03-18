@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let customWords = [];
 
     // If settings exist in localStorage, load them
-    // may need to delte 
     const savedSettings = localStorage.getItem('gameSettings');
     if (savedSettings) {
       const settings = JSON.parse(savedSettings);
@@ -19,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
       roundsInput.value = settings.rounds || '';
       roundDurationInput.value = settings.roundDuration || '';
       if (Array.isArray(settings.customWords)) {
-        customWords = settings.customWords
+        customWords = settings.customWords;
         renderCustomWords();
       }
     }
@@ -34,9 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     function renderCustomWords() {
-
-        customWordsList.innerHTML = '';
-        customWords.forEach((word, index) => {
+      customWordsList.innerHTML = '';
+      customWords.forEach((word, index) => {
         const li = document.createElement('li');
         li.textContent = word;
         const removeBtn = document.createElement('button');
@@ -49,27 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
         customWordsList.appendChild(li);
       });
     }
-
-    // Save settings to localStorage when the Save button is clicked
-    saveSettingsBtn.onclick = () => {
-      const settings = {
-        maxPlayerCount: Number(maxPlayersInput.value),
-        rounds: Number(roundsInput.value),
-        roundDuration: Number(roundDurationInput.value),
-        customWords: customWords
-      };
-
-      return fetch('/api/create-room', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(settings)
-      })
-
-      localStorage.setItem('gameSettings', JSON.stringify(settings));
-      alert('Settings saved!');
-    };
 
     document.getElementById("roomBtn").addEventListener("click", function () {
       const maxPlayers = maxPlayersInput.value;
@@ -89,5 +66,5 @@ document.addEventListener('DOMContentLoaded', () => {
           window.location.href = `/room?code=${roomCode}`;
         }
       });
-    })
+    });
 });
