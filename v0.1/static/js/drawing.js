@@ -190,6 +190,7 @@ function addText(cnvs, size, align, text, textX, textY) {
 // Runs when the Back Button is pressed (incomplete)
 function back() {
     console.log("Back Button"); // Send to back end that user has left the room
+    window.location.href = '/';
 }
 
 // Highlight the selected tool
