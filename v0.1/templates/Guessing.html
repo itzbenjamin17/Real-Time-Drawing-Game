@@ -22,13 +22,13 @@
       Your browser does not support the HTML canvas tag.
     </canvas>
     
-    <!--Canvas for Word UI (Incomplete)-->
-    <canvas id="WordCanvas" width="800" height="75" style="border:10px solid #000000;" >
+    <!--Canvas for Word UI-->
+    <canvas id="WordCanvas" width="700" height="75" style="border:10px solid #000000;" >
       Your browser does not support the HTML canvas tag.
     </canvas>
 
-    <!--Canvas for Timer (Incomplete)-->
-    <canvas id="TimerCanvas" width="150" height="75" style="border:10px solid #000000;" >
+    <!--Canvas for Timer-->
+    <canvas id="TimerCanvas" width="250" height="75" style="border:10px solid #000000;" >
       Your browser does not support the HTML canvas tag.
     </canvas>
     </div>
@@ -36,30 +36,31 @@
     <!--Middle Row-->
     <div class="middle">
 
-    <!--Leaderboard Canvas (Incomplete)-->
+    <!--Leaderboard Canvas-->
     <canvas id="LeaderboardCanvas" width="150" height="450" style="border:10px solid #000000;" >
       Your browser does not support the HTML canvas tag.
     </canvas>
 
-    <!--Drawing Canvas, push to draw-->
-    <canvas id="DrawingCanvas" width="800" height="450" style="border:10px solid #000000;" >
-      Your browser does not support the HTML canvas tag.
-    </canvas>
+    <img id="DrawingImage" width="700" height="450" style="border:10px solid #000000;">
 
-    <!--Chat Canvas (Incomplete)-->
-    <canvas id="ChatCanvas" width="150" height="450" style="border:10px solid #000000;" >
-      Your browser does not support the HTML canvas tag.
-    </canvas>
+    <!--Chat Area-->
+    <div class="messages" id="messages">
+    </div>
     </div>
     
     <!--Bottom Row-->
     <div class="bottom">
-    <!--Guessing Canvas (Incomplete)-->
-    <canvas id="GuessingCanvas" width="800" height="75" style="border:10px solid #000000;" >
-      Your browser does not support the HTML canvas tag.
-    </canvas>
-    <input type="text" id="Guess" placeholder="Type your guess here..." style="position: absolute;">
+    
+    <!--Guessing Area-->
+    <div>
+      <div class="inputs">
+          <input type="text" rows="3" placeholder="Message" name="message" id="message"/>
+          <button type="button" name="send" id="send-btn" onClick="sendMessage()">Send</button>
+      </div>
     </div>
+    </div>
+
+    <!--Others-->
 
     <div id="waiting-modal" class="modal">
       <div class="modal-content">

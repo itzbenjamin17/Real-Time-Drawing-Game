@@ -1,40 +1,71 @@
 body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    gap: 5px;
-  }
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  gap: 5px;
+}
 
 .top {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
 
 .middle {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-  }
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
 
 .bottom {
-    display: flex;
-    margin-left: 180px;
-    align-items: center;
-    gap: 10px;
-  }
+  display: flex;
+  margin-left: 180px;
+  align-items: center;
+  gap: 10px;
+}
 
-  .selected {
-    background-color: #4CAF50; /* Green background for the selected word */
-    color: white;
-  }
+/* Chat Box */
+.messages {
+  height: 440px;
+  overflow-y: auto;
+  border: 1px solid #b8adb8;
+  padding: 10px;
+  background: white;
+  border-radius: 5px;
+  width: 250px;
+}
 
-  .overlay {
+.text {
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.text strong {
+  color: #007bff;
+}
+
+.text span {
+  background: #e9ecef;
+  padding: 6px 10px;
+  border-radius: 5px;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.selected {
+  background-color: #4CAF50; /* Green background for the selected word */
+  color: white;
+}
+
+.overlay {
   position: fixed;
   top: 0;
   left: 0;

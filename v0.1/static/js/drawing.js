@@ -36,6 +36,7 @@ let score4 = 239999;
 let username5 = "shelllll";
 let score5 = 2399999;
 
+
 // ---Images---
 const pencil = new Image();
 pencil.src = "static/pencil.png";
@@ -64,10 +65,6 @@ var Lcnvs = leaderboardCanvas.getContext("2d");
 // Create Drawing Canvas
 var drawingCanvas = document.getElementById("DrawingCanvas");
 var Dcnvs = drawingCanvas.getContext("2d");
-
-// Chat Canvas
-var chatCanvas = document.getElementById("ChatCanvas");
-var CHcnvs = chatCanvas.getContext("2d");
 
 // Create Colour Choosing Canvas
 var coloursCanvas = document.getElementById("ColoursCanvas");
@@ -192,6 +189,7 @@ function addText(cnvs, size, align, text, textX, textY) {
 // Runs when the Back Button is pressed (incomplete)
 function back() {
     console.log("Back Button"); // Send to back end that user has left the room
+    window.location.href = '/';
 }
 
 // Highlight the selected tool
@@ -234,17 +232,17 @@ function toolsClick(mouseX) {
 // Update Timer
 function runTimer() {
     // Clear Tcnvs
-    TIcnvs.clearRect(0, 0, 150, 75);
+    TIcnvs.clearRect(0, 0, 250, 75);
 
     // Background
     TIcnvs.fillStyle = "#ffd296";
-    TIcnvs.fillRect(0, 0, 150, 75);
+    TIcnvs.fillRect(0, 0, 250, 75);
 
     // update timer
     if (seconds == "0") {
         if (tenSeconds == "0") {
             if (minutes == "0") {
-                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
                 console.log("Time's Up! The word was: " + word);
             }
@@ -254,7 +252,7 @@ function runTimer() {
                 minutes = parseInt(minutes) - 1;
                 minutes = minutes.toString();
     
-                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
             }
         }
         else {
@@ -262,14 +260,14 @@ function runTimer() {
             tenSeconds = parseInt(tenSeconds) - 1;
             tenSeconds = tenSeconds.toString();
 
-            addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+            addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
         }
     }
     else {
         seconds = parseInt(seconds) - 1;
         seconds = seconds.toString();
 
-        addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+        addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
     }
 }
 
@@ -346,6 +344,80 @@ function loadLeaderboard() {
     }
 }
 
+// ---Socketio---
+
+var socketio = io();
+
+window.onload = function() {
+    socketio.emit('ready')
+}
+
+socketio.onAny((event, ...args) => {
+    console.log(`Received Event: ${event}`, args);
+});
+
+socketio.on("connect", () => {
+    console.log("Socket Connected!");
+});
+
+
+socketio.on('redirect', (url) => {
+    window.location.href = url;
+});
+
+// Detect when a message has been sent
+socketio.on("message", (data) => {
+    console.log("Received Message:", data);
+    createMessage(data.name, data.message);
+    console.log("Still connected...")
+});
+
+// Choosing Words
+socketio.on('chooseWords', (words) => {
+    const wordList = document.getElementById('word-list');
+    wordList.innerHTML = '';
+    words.forEach((word) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = word;
+        listItem.onclick = function() {
+            socketio.emit('wordSelected', word);
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('word-selection-modal').style.display = 'none';
+            timer = setInterval(runTimer, 1000);
+            addText(Wcnvs, "50", "center", word, 350, 55);
+        };
+        wordList.appendChild(listItem);
+    });
+
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('word-selection-modal').style.display = 'block';
+});
+
+// Display Message
+const createMessage = (name, msg) => {
+    const content = `
+    <div class="text">
+        <span>
+            <strong>${name}</strong>: ${msg}
+        </span>
+    </div>
+    `;
+    messages.innerHTML += content;
+    messages.scrollTop = messages.scrollHeight;
+};
+
+// Sending canvas data
+const sendDrawing = () => {
+    const canvas = document.getElementById("DrawingCanvas");
+    const dataURL = canvas.toDataURL();
+
+    console.log("Sending drawing update:", dataURL.slice(0, 50) + "...");
+    socketio.emit("drawing_update", {"image": dataURL});
+};
+
+// Sends an image of the canvas to all players every half-second.
+setInterval(sendDrawing, 500);
+
 // ---Event listeners---
 coloursCanvas.addEventListener("click", function(e) { 
     isInsideCircle(e.clientX, e.clientY); 
@@ -376,11 +448,11 @@ Bcnvs.fillRect(0, 0, 150, 75);
 
 // Background for Word Canvas
 Wcnvs.fillStyle = "#ffd296";
-Wcnvs.fillRect(0, 0, 800, 75);
+Wcnvs.fillRect(0, 0, 700, 75);
 
 // Background for Timer Canvas
 TIcnvs.fillStyle = "#ffd296";
-TIcnvs.fillRect(0, 0, 150, 75);
+TIcnvs.fillRect(0, 0, 250, 75);
 
 // Background for Leaderboard Canvas
 Lcnvs.fillStyle = "#ffd296";
@@ -388,11 +460,7 @@ Lcnvs.fillRect(0, 0, 150, 450);
 
 // White Background for Drawing Canvas
 Dcnvs.fillStyle = "white";
-Dcnvs.fillRect(0, 0, 800, 500);
-
-// Background for Chat Canvas
-CHcnvs.fillStyle = "#ffd296";
-CHcnvs.fillRect(0, 0, 150, 450);
+Dcnvs.fillRect(0, 0, 700, 500);
 
 // When these images load, put them on the screen
 pencil.onload = function () {
@@ -426,38 +494,6 @@ drawCircle(760, "black");
 addText(Bcnvs, "40", "center", "Back", 75, 50);
 
 // Timer Text 
-addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 75, 50);
+addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
 
 loadLeaderboard();
-
-// ---Socketio---
-
-var socketio = io();
-
-window.onload = function() {
-    socketio.emit('ready')
-}
-
-socketio.on('redirect', (url) => {
-    window.location.href = url;
-});
-
-socketio.on('chooseWords', (words) => {
-    const wordList = document.getElementById('word-list');
-    wordList.innerHTML = '';
-    words.forEach((word) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = word;
-        listItem.onclick = function() {
-            socketio.emit('wordSelected', word);
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('word-selection-modal').style.display = 'none';
-            timer = setInterval(runTimer, 1000);
-            addText(Wcnvs, "50", "center", word, 400, 50);
-        };
-        wordList.appendChild(listItem);
-    });
-
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('word-selection-modal').style.display = 'block';
-});
