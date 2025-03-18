@@ -185,7 +185,7 @@ api.add_resource(GetPlayersInRoom, '/api/get-players-in-room/<string:room_code>/
 
 # ----------------- Routes ----------------- #
 
-@app.route("/", methods = ["POST", "GET"])
+@app.route("/", methods = ["POST", "GET"]) # --- COMPLETE ---
 def index():
     session.clear()
 
@@ -234,7 +234,7 @@ def index():
 
     return render_template("index.html")
 
-@app.route("/room", methods=["GET", "POST"])
+@app.route("/room", methods=["GET", "POST"]) # --- COMPLETE ---
 def room():
     name = session.get("name")
     if not name:
@@ -278,7 +278,7 @@ def room():
 
     return render_template("room.html", code=room, messages=rooms[room]["messages"], host=host)
 
-@app.route("/create-room", methods=["GET", "POST"])
+@app.route("/create-room", methods=["GET", "POST"]) # --- COMPLETE ---
 def create_room():
     print("Session in create_room():", session)
     name = session.get("name")
@@ -327,50 +327,36 @@ def create_room():
 
     return render_template("create room.html", code=room, messages=rooms[room]["messages"])
 
-@app.route("/join-room", methods=["POST"])
+@app.route("/join-room", methods=["POST"]) # --- COMPLETE ---
 def join_room(room):
     return render_template("room.html", code=room, messages=rooms[room]["messages"])
 
-@app.route("/game", methods=["GET", "POST"])
+@app.route("/game", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def game():
-    room = session.get("room")
-    guessing_list = rooms[room]['wordList']
-    
-    # Trying to make sure that only one word is generated each round.
-    if 'word' not in rooms[room]:
-        rooms[room]['word'] = random.choice(guessing_list)
+    return render_template("drawing.html")
 
-    return render_template("drawing.html", word=rooms[room]['word'])
-
-@app.route("/guess", methods=["GET", "POST"])
+@app.route("/guess", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def guess():
     return render_template("Guessing.html")
 
-@app.route("/leaderboard", methods=["GET", "POST"])
+@app.route("/leaderboard", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def leaderboard():
     return render_template("leaderboard.html")
 
-@app.route("/about", methods=["GET", "POST"])
+@app.route("/about", methods=["GET", "POST"]) # --- COMPLETE ---
 def about():
     return render_template("frp.html")
 
-@app.route("/report", methods=["GET", "POST"])
+@app.route("/report", methods=["GET", "POST"]) # --- COMPLETE ---
 def report():
     return render_template("lrp.html")
 
-@app.route("/admin/reports", methods=["GET"])
+@app.route("/admin/reports", methods=["GET"]) # --- COMPLETE ---
 def admin_reports():
     reports = Report.query.order_by(Report.timestamp.desc()).all()
     return render_template("admin reports.html", reports=reports)
 
 # ----------------- Real Time Connection ----------------- #
-
-@socketio.on("reset_word")
-def reset_word():
-    # Call this at the beginning of every round to make sure that when the players are redirected, only one word is generated.
-    room = session.get("room")
-    if room in rooms and 'word' in rooms[room]:
-        del rooms[room]['word']
 
 @socketio.on("message")
 def message(data):
