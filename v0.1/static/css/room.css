@@ -14,6 +14,27 @@ body {
     overflow: hidden;
 }
 
+.start-button-container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#startGame {
+    background-color: #30c453;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+#startGame:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
 @keyframes gradientMove {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }

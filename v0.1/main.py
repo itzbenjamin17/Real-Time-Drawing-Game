@@ -1,12 +1,12 @@
 # Use this to run the server:
-# python init_db.py (if there is no instance folder)
-# flask --app main.py run --host=0.0.0.0 --port=5000
+# python main.py
 
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import random
+import base64
 from string import ascii_uppercase
 import json
 
@@ -69,7 +69,13 @@ class Round(db.Model):
     current_time = db.Column(db.Integer, default=0)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
 
-
+class Report(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    issue_type = db.Column(db.String(50), nullable=False)
+    issue_description = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.now())
 
 # ----------------- API Endpoints ----------------- #
 # Example use of the API:
@@ -179,7 +185,7 @@ api.add_resource(GetPlayersInRoom, '/api/get-players-in-room/<string:room_code>/
 
 # ----------------- Routes ----------------- #
 
-@app.route("/", methods = ["POST", "GET"])
+@app.route("/", methods = ["POST", "GET"]) # --- COMPLETE ---
 def index():
     session.clear()
 
@@ -228,7 +234,7 @@ def index():
 
     return render_template("index.html")
 
-@app.route("/room", methods=["GET", "POST"])
+@app.route("/room", methods=["GET", "POST"]) # --- COMPLETE ---
 def room():
     name = session.get("name")
     if not name:
@@ -272,7 +278,7 @@ def room():
 
     return render_template("room.html", code=room, messages=rooms[room]["messages"], host=host)
 
-@app.route("/create-room", methods=["GET", "POST"])
+@app.route("/create-room", methods=["GET", "POST"]) # --- COMPLETE ---
 def create_room():
     print("Session in create_room():", session)
     name = session.get("name")
@@ -305,38 +311,50 @@ def create_room():
             rooms[room]["roundDuration"] = roundDuration
         except:
             rooms[room]["roundDuration"] = 60
-        defaultWords = ['word1', 'word2', 'word3']
+        defaultWords = ["horse", "suitcase", "rain", "socks", "grapes",
+                        "skateboard", "dream", "cat", "fly", "bark",
+                        "solar system", "hip", "fist", "fruit", "saltwater",
+                        "penguin", "trap", "glove", "tail", "hour", "crust",
+                        "lullaby", "geyser", "rival", "exponential", "haberdashery",
+                        "plot", "camera", "sun", "grandpa", "detail"]
         customWords = json.loads(request.form.get("customWords"))
         defaultWords.extend(customWords)
         rooms[room]['wordList'] = defaultWords
+        
         print(rooms[room])
+
         return jsonify({'status': 'success', 'room': room})
 
     return render_template("create room.html", code=room, messages=rooms[room]["messages"])
 
-@app.route("/join-room", methods=["POST"])
+@app.route("/join-room", methods=["POST"]) # --- COMPLETE ---
 def join_room(room):
     return render_template("room.html", code=room, messages=rooms[room]["messages"])
 
-@app.route("/game", methods=["GET", "POST"])
+@app.route("/game", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def game():
     return render_template("drawing.html")
 
-@app.route("/guess", methods=["GET", "POST"])
+@app.route("/guess", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def guess():
     return render_template("Guessing.html")
 
-@app.route("/leaderboard", methods=["GET", "POST"])
+@app.route("/leaderboard", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def leaderboard():
     return render_template("leaderboard.html")
 
-@app.route("/about", methods=["GET", "POST"])
+@app.route("/about", methods=["GET", "POST"]) # --- COMPLETE ---
 def about():
     return render_template("frp.html")
 
-@app.route("/report", methods=["GET", "POST"])
+@app.route("/report", methods=["GET", "POST"]) # --- COMPLETE ---
 def report():
     return render_template("lrp.html")
+
+@app.route("/admin/reports", methods=["GET"]) # --- COMPLETE ---
+def admin_reports():
+    reports = Report.query.order_by(Report.timestamp.desc()).all()
+    return render_template("admin reports.html", reports=reports)
 
 # ----------------- Real Time Connection ----------------- #
 
@@ -391,8 +409,20 @@ def reported(data):
     issue_type = data["issue_type"]
     issue_desc = data["issue_description"]
 
-    # You can save these into the database, the variable names are self-explanatory.
-    # If you want to see where these values are coming from, check lrp.html.
+    report = Report(
+        username=name,
+        email=email,
+        issue_type=issue_type,
+        issue_description=issue_desc
+    )
+
+    try:
+        db.session.add(report)
+        db.session.commit()
+        print("Report added to database.")
+    except Exception as e:
+        db.session.rollback()
+        print("Error adding report to database:", e)
 
 @socketio.on("connect")
 def connect(auth):
@@ -431,6 +461,28 @@ def new_round(data):
         else:
             socketio.emit('redirect', '/guess', room=sid)
 
+@socketio.on("drawing_update")
+def drawing_update(data):
+    print("Sending drawing update...")
+    room = session.get("room")
+
+    image_data = data.get("image", "")
+    if not image_data.startswith("data:image/png;base64,"):
+        print("Error: Invalid Base64 format!")
+        return
+
+    try:
+        base64_data = image_data.split(",")[1]
+        base64.b64decode(base64_data)
+    except Exception as error:
+        print("Error decoding Base64:", error)
+        return
+
+    print(f"Received drawing from {session.get('name')} in room {room}.")
+
+    socketio.emit("display_drawing", {"image": data["image"]})
+    print("Emitted display_drawing event to room:", room)
+
 @socketio.on("disconnect")
 def disconnect():
     room = session.get("room")
@@ -449,8 +501,9 @@ def disconnect():
     socketio.emit("update_players", rooms[room]["players"])
 
 if __name__ == "__main__":
-    socketio.run(app, debug = True)
-
-# Use this to run the server:
-# python init_db.py (if there is no instance folder)
-# flask --app main.py run --host=0.0.0.0 --port=5000
+    # Create database tables if they don't exist
+    with app.app_context():
+        db.create_all()
+        print("Database initialized successfully!")
+    
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)

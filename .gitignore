@@ -4,6 +4,7 @@ __pycache__/
 db.sqlite3
 
 instance/
+flask_session/
 
 # Virtual environment folder
 myenv/
