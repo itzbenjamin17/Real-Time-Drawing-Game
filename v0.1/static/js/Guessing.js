@@ -43,6 +43,8 @@ var Tcnvs = timerCanvas.getContext("2d");
 var leaderboardCanvas = document.getElementById("LeaderboardCanvas");
 var Lcnvs = leaderboardCanvas.getContext("2d");
 
+var drawingCanvas = document.getElementById("DrawingImage");
+
 // ---Functions---
 
 //Get coords of canvas topleft corner
