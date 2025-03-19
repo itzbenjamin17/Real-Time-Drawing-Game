@@ -255,9 +255,9 @@ window.onload = function() {
     document.getElementById('waiting-modal').style.display = 'block';
 }
 
-socketio.onAny((event, ...args) => {
-    console.log(`Received Event: ${event}`, args);
-});
+//socketio.onAny((event, ...args) => {
+//    console.log(`Received Event: ${event}`, args);
+//});
 
 socketio.on("connect", () => {
     console.log("Socket Connected!");
@@ -299,6 +299,14 @@ socketio.on("scores", (scores) => {
     playerScores = scores;
     console.log("Player Scores:", playerScores);
 });
+
+// All players guessed correctly
+socketio.on("all_guessed", () => {
+    setTimeout(() => {
+        socketio.emit("new_round");
+    }, 5000);
+});
+
 
 // Receiving canvas data
 socketio.on("display_drawing", (data) => {
