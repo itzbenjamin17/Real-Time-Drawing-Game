@@ -428,7 +428,15 @@ def guess():
 
 @app.route("/leaderboard", methods=["GET", "POST"])  # !-- INCOMPLETE --!
 def leaderboard():
-    return render_template("leaderboard.html")
+    name = session.get("name")
+    room = session.get("room")
+
+    data = {
+        "scores": rooms[room]["scores"], # Sends a dictionary of scores.
+        "individual_username": name 
+    }
+
+    return render_template("leaderboard.html", data=data)
 
 
 @app.route("/about", methods=["GET", "POST"])  # --- COMPLETE ---
