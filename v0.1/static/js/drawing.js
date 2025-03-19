@@ -288,8 +288,14 @@ function stopTimer() {
 }
 
 function loadLeaderboard() {
-    // Load player list
+    // Clear the previous canvas
+    Lcnvs.clearRect(0, 0, 150, 450)
 
+    // Background and Outline
+    Lcnvs.fillStyle = "#ffd296";
+    Lcnvs.fillRect(0, 0, 150, 450)
+
+    // Load Player List
     // 1st Place
     Lcnvs.strokeStyle = "black";
     Lcnvs.lineWidth = 2;
@@ -465,10 +471,6 @@ Wcnvs.fillRect(0, 0, 700, 75);
 // Background for Timer Canvas
 TIcnvs.fillStyle = "#ffd296";
 TIcnvs.fillRect(0, 0, 250, 75);
-
-// Background for Leaderboard Canvas
-Lcnvs.fillStyle = "#ffd296";
-Lcnvs.fillRect(0, 0, 150, 450);
 
 // White Background for Drawing Canvas
 Dcnvs.fillStyle = "white";

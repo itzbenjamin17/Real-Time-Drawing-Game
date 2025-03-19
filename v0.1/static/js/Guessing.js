@@ -82,9 +82,8 @@ function addText(cnvs, size, align, text, textX, textY) {
     cnvs.fillText(text, textX, textY);
 }
 
-// Runs when the Back Button is pressed (**incomplete**)
+// Runs when the Back Button is pressed 
 function back() {
-    console.log("Back Button") // Send to back end that user has left the room
     window.location.href = '/';
 }
 
@@ -157,6 +156,10 @@ function correctGuess() {
     // Display the word at the top
     displayWord(word, true);
 
+    // Send message that this player has guessed correctly
+    socketio.emit("message", {data: "I've guessed correctly!"});
+
+    // Update score to leaderboard
     socketio.emit("calculate_score", {
         "minutes": minutes,
         "ten_seconds": tenSeconds,
@@ -167,8 +170,14 @@ function correctGuess() {
 // Need logic that checks if all guessing players have guessed correctly
 
 function loadLeaderboard() {
-    // Load player list
+    // Clear the previous canvas
+    Lcnvs.clearRect(0, 0, 150, 450)
 
+    // Background and Outline
+    Lcnvs.fillStyle = "#ffd296";
+    Lcnvs.fillRect(0, 0, 150, 450)
+
+    // Load Player List
     // 1st Place
     Lcnvs.strokeStyle = "black";
     Lcnvs.lineWidth = 2;
@@ -310,8 +319,8 @@ const sendMessage = () => {
     const message = document.getElementById("message"); // fetch message
     if (message.value == "") return; // if empty do nothing
     if (!guessed) {
-        socketio.emit("message", {data: message.value}); // send to other players
         if (message.value == word) correctGuess();
+        else socketio.emit("message", {data: message.value}); // send to other players
     }
     message.value = ""; // empties box
 };
@@ -358,10 +367,6 @@ Wcnvs.fillRect(0, 0, 700, 75)
 // Background for Timer Canvas
 Tcnvs.fillStyle = "#ffd296";
 Tcnvs.fillRect(0, 0, 250, 75)
-
-// Background for Leaderboard Canvas
-Lcnvs.fillStyle = "#ffd296";
-Lcnvs.fillRect(0, 0, 150, 450)
 
 // Back Button Text
 addText(Bcnvs, "40", "center", "Back", 75, 50);
