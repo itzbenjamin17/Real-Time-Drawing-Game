@@ -255,7 +255,7 @@ function runTimer() {
                 }, 5000);
 
                 // Display the word to the player
-                socketio.emit("message", {data: "Time's up! The theme was: " + theme});
+                socketio.emit("message", {data: "Time's up! The word was: " + theme});
             }
             else {
                 seconds = "9";
@@ -369,9 +369,9 @@ window.onload = function() {
     socketio.emit('ready')
 }
 
-socketio.onAny((event, ...args) => {
-    console.log(`Received Event: ${event}`, args);
-});
+//socketio.onAny((event, ...args) => {
+//    console.log(`Received Event: ${event}`, args);
+//});
 
 socketio.on("connect", () => {
     console.log("Socket Connected!");
@@ -428,6 +428,14 @@ socketio.on('chooseWords', (words) => {
 
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('word-selection-modal').style.display = 'block';
+});
+
+// All players guessed correctly
+socketio.on("all_guessed", () => {
+    setTimeout(() => {
+        socketio.emit("new_round");
+    }, 5000);
+    socketio.emit("message", {data: "Round over, everyone guessed correctly! The word was: " + theme});
 });
 
 // Display Message
