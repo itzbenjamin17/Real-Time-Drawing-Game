@@ -3,6 +3,7 @@
 
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import random
@@ -14,8 +15,10 @@ import json
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "test"
+app.config["SESSION_TYPE"] = "filesystem"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+Session(app)
 
 socketio = SocketIO(app)
 api = Api(app)
@@ -401,6 +404,7 @@ def game():
     room = session.get("room")
 
     rooms[room]["current_drawer"] = name
+    rooms[room]["correct"] = 0
     return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"])
 
 
@@ -525,7 +529,13 @@ def connect(auth):
     rooms[room]["members"] += 1
     print(f"{name} joined room {room}")
 
-    socketio.emit("username", rooms[room]["players"])
+    socketio.emit("username", rooms[room]["players"]) # Sends a list of players in the room.
+    socketio.emit("individual_username", name, room=request.sid) # Sends a string of the client's username.
+    try:
+        socketio.emit("scores", rooms[room]["score"]) # Sends a dictionary of the players' scores.
+    except:
+        scores = {username: 0 for username in rooms[room]["players"]}
+        socketio.emit("scores", scores) # Sends a dictionary of the players' scores.
 
 
 @socketio.on("new_round")
@@ -546,6 +556,7 @@ def new_round():
 
 @socketio.on("drawing_update")
 def drawing_update(data):
+    #print("Sending drawing update...")
     room = session.get("room")
 
     image_data = data.get("image", "")
@@ -560,7 +571,10 @@ def drawing_update(data):
         print("Error decoding Base64:", error)
         return
 
+    #print(f"Received drawing from {session.get('name')} in room {room}.")
+
     socketio.emit("display_drawing", {"image": data["image"]})
+    #print("Emitted display_drawing event to room:", room)
 
 
 @socketio.on("disconnect")
