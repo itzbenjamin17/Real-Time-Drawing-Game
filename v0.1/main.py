@@ -405,6 +405,15 @@ def game():
 
     rooms[room]["current_drawer"] = name # Sets the current drawer to the player rendering '/game'.
     rooms[room]["correct"] = 0 # Reset correct guesses to 0 at the start of every round.
+    if 'current_round' not in rooms[room]:
+        print("Creating 'current_round'...")
+        rooms[room]["current_round"] = 1
+    else:
+        print("Incrementing 'current_round'...")
+        rooms[room]["current_round"] += 1
+
+
+
     return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"])
     # Sends drawer data and timer parameters to the frontend. 
 
@@ -550,7 +559,9 @@ def new_round():
     next_drawer = players[next_index]
 
     for sid, player in rooms[room]['sid_map'].items():
-        if player == next_drawer:
+        if rooms[room]["current_round"] == int(rooms[room]["rounds"]) * len(rooms[room]["players"]):
+            socketio.emit('redirect', '/leaderboard', room=sid)
+        elif player == next_drawer:
             socketio.emit('redirect', '/game', room=sid)
         else:
             socketio.emit('redirect', '/guess', room=sid)
