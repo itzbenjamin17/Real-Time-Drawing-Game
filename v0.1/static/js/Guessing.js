@@ -66,11 +66,14 @@ function displayWord(word, guessed) {
         length = word.length;
         let displayedWord = "";
         for (let i = 0; i < length; i++) {
-            displayedWord += "_ ";
+            if (word[i] != " ") displayedWord += "_ ";
+            else displayedWord += "  ";
         }
         displayedWord = displayedWord.slice(0, -1);
         
-        addText(Wcnvs, "50", "center", displayedWord, 350, 55)
+        let textSize = "50";
+        if (length > 10) textSize = "30";
+        addText(Wcnvs, textSize, "center", displayedWord, 350, 55);
     }
 }
 
@@ -302,6 +305,7 @@ socketio.on("scores", (scores) => {
 
 // All players guessed correctly
 socketio.on("all_guessed", () => {
+    stopTimer();
     setTimeout(() => {
         socketio.emit("new_round");
     }, 5000);

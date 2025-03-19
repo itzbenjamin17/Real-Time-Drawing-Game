@@ -417,6 +417,7 @@ socketio.on('chooseWords', (words) => {
         listItem.textContent = word;
         listItem.onclick = function() {
             socketio.emit('wordSelected', word);
+            socketio.emit("message", {data: "The theme has been chosen. The theme has " +  word.length + " characters."});
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('word-selection-modal').style.display = 'none';
             timer = setInterval(runTimer, 1000);
@@ -432,6 +433,7 @@ socketio.on('chooseWords', (words) => {
 
 // All players guessed correctly
 socketio.on("all_guessed", () => {
+    stopTimer();
     setTimeout(() => {
         socketio.emit("new_round");
     }, 5000);

@@ -377,11 +377,19 @@ def create_room():
             count += 1
 
         defaultWords = ["horse", "suitcase", "rain", "socks", "grapes",
-                        "skateboard", "dream", "cat", "fly", "bark",
-                        "solar system", "hip", "fist", "fruit", "saltwater",
-                        "penguin", "trap", "glove", "tail", "hour", "crust",
-                        "lullaby", "geyser", "rival", "exponential", "haberdashery",
-                        "plot", "camera", "sun", "grandpa", "detail"]
+                        "skateboard", "dream", "cat", "fly", "monster",
+                        "solar system", "hip", "fist", "fruit", "dragon",
+                        "penguin", "trap", "glove", "tail", "jellyfish", "snail",
+                        "chimney", "lolipop", "rival", "caterpillar", "football",
+                        "computer", "camera", "sun", "grandpa", "octopus", "iron", 
+                        "hospital", "jungle", "astronaut", "dollar", "empty", 
+                        "positive", "circus", "party", "shipwreck",  "ceiling fan", 
+                        "sleeve", "hunter", "chest", "mirror", "signal", "company", 
+                        "stew", "record", "zoom", "gold medal", "dodgeball", 
+                        "cartoon", "time machine", "cleaning spray", "garden hose", 
+                        "earthquake", "photosynthesis", "airport security", "taxi", 
+                        "living room", "schedule", "knowledge", "destruction", 
+                        "bar of chocolate", "cell phone charger"]
         customWords = json.loads(request.form.get("customWords"))
         defaultWords.extend(customWords)
         rooms[room]['wordList'] = defaultWords
