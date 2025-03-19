@@ -81,3 +81,8 @@
     <script src="{{ url_for('static', filename='js/drawing.js') }}"></script>
   </body>
 </html>
+
+<script text="text/javascript">
+  window.currentDrawer = {{ current_drawer | tojson }};
+  console.log("Current Drawer:", window.currentDrawer);
+</script>
