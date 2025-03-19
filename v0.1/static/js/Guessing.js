@@ -283,7 +283,7 @@ socketio.on('redirect', (url) => {
 
 // Receiving canvas data
 socketio.on("display_drawing", (data) => {
-    console.log("Received drawing update:", data.image.slice(0, 50) + "...");
+    //console.log("Received drawing update:", data.image.slice(0, 50) + "...");
 
     //const imageElement = document.getElementById("DrawingImage");
     //console.log("DrawingImage element exists?", document.getElementById("DrawingImage"));
@@ -293,14 +293,14 @@ socketio.on("display_drawing", (data) => {
     //  return;
     //}
 
-    console.log("Updating image src...");
+    //console.log("Updating image src...");
     drawingCanvas.src = data.image;
     
     drawingCanvas.onload = () => {
-    console.log("Image loaded.");
+    //console.log("Image loaded.");
     };
     drawingCanvas.onerror = () => {
-    console.error("Failed to load image.");
+    //console.error("Failed to load image.");
     };
 });
 
