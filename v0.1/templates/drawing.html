@@ -78,11 +78,21 @@
     <!-- Background dimming overlay -->
     <div id="overlay" class="overlay"></div>
 
-    <script src="{{ url_for('static', filename='js/drawing.js') }}"></script>
   </body>
 </html>
 
 <script text="text/javascript">
   window.currentDrawer = {{ current_drawer | tojson }};
   console.log("Current Drawer:", window.currentDrawer);
+
+  window.minutes = {{ mins | tojson }};
+  console.log("Minutes:", window.minutes);
+
+  window.ten_secs = {{ ten_secs | tojson }};
+  console.log("Ten Seconds:", window.ten_secs);
+
+  window.secs = {{ secs | tojson }};
+  console.log("Seconds:", window.secs);
 </script>
+
+<script src="{{ url_for('static', filename='js/drawing.js') }}"></script>

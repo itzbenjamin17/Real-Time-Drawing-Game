@@ -8,6 +8,7 @@ from flask_restful import Resource, Api
 import random
 import base64
 import time
+import math
 from string import ascii_uppercase
 import json
 
@@ -23,6 +24,9 @@ db = SQLAlchemy(app)
 rooms = {}
 
 def generate_unique_code(Length):
+    '''
+    Used to generate a unique code when a room is created.
+    '''
     while True:
         code = ""
         for _ in range(Length):
@@ -32,6 +36,37 @@ def generate_unique_code(Length):
             break
 
     return code
+
+def sec_to_timer(secs):
+    '''
+    Used to calculate the timer parameters for drawing and guessing, given a duration in seconds.
+    '''
+    mins = secs // 60
+    ten_seconds = (secs % 60) // 10
+    seconds = secs % 10
+
+    return (mins, ten_seconds, seconds)
+
+def timer_to_sec(mins, ten_seconds, seconds):
+    '''
+    Used to convert the timer parameters back into seconds.
+    '''
+    secs = (mins * 60) + (ten_seconds * 10) + seconds
+
+    return secs
+
+def calc_score(timer, room, max_score=100, k=1):
+    '''
+    Used to calculate the score a player gets upon guessing the word correctly.
+    Requires the timer data from the frontend, as well as the room code.
+    The faster the guess was, the higher the score.
+    '''
+    duration = rooms[room]["roundDuration"]
+    time_ratio = timer / duration
+
+    additional_score = max_score * math.exp(-k * (1 - time_ratio))
+
+    return round(additional_score)
 
 # ----------------- Database Models ----------------- #
 class Room(db.Model):
@@ -312,6 +347,13 @@ def create_room():
             rooms[room]["roundDuration"] = roundDuration
         except:
             rooms[room]["roundDuration"] = 60
+
+        times = sec_to_timer(rooms[room]["roundDuration"])
+        count = 0
+        for time in ["mins", "ten_seconds", "seconds"]:
+            rooms[room][time] = times[count]
+            count += 1
+        
         defaultWords = ["horse", "suitcase", "rain", "socks", "grapes",
                         "skateboard", "dream", "cat", "fly", "bark",
                         "solar system", "hip", "fist", "fruit", "saltwater",
@@ -338,13 +380,13 @@ def game():
     room = session.get("room")
 
     rooms[room]["current_drawer"] = name
-    return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"])
+    return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"])
 
 @app.route("/guess", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def guess():
     room = session.get("room")
     time.sleep(0.5)
-    return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"])
+    return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"])
 
 @app.route("/leaderboard", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def leaderboard():

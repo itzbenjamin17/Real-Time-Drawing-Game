@@ -6,9 +6,11 @@ let colour = "black";
 
 let mode = "pencil";
 
-let minutes = "3";
-let tenSeconds = "0";
-let seconds = "0";
+console.log(window.mins, window.ten_secs, window.secs);
+
+let minutes = window.minutes;
+let tenSeconds = window.ten_secs;
+let seconds = window.secs;
 
 let isDrawing = false;
 
