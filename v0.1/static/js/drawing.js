@@ -6,8 +6,8 @@ let colour = "black";
 
 let mode = "pencil";
 
-let minutes = "3";
-let tenSeconds = "0";
+let minutes = "0";
+let tenSeconds = "1";
 let seconds = "0";
 
 let isDrawing = false;
@@ -244,6 +244,12 @@ function runTimer() {
                 addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
                 console.log("Time's Up! The word was: " + word);
+                // Need to add logic to end the round and move on to the next
+                
+                // Store data (username, score, current round, etc.)
+
+                // Redirect to new round
+                socketio.emit("new_round");
             }
             else {
                 seconds = "9";
