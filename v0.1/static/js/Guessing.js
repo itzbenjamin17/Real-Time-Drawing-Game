@@ -1,6 +1,7 @@
 // ---Variables---
 let mouseX = 0;
 let mouseY = 0;
+let guessed = false;
 
 console.log(window.mins, window.ten_secs, window.secs);
 
