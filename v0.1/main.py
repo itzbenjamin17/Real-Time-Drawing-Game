@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import random
 import base64
+import time
 from string import ascii_uppercase
 import json
 
@@ -333,11 +334,17 @@ def join_room(room):
 
 @app.route("/game", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def game():
-    return render_template("drawing.html")
+    name = session.get("name")
+    room = session.get("room")
+
+    rooms[room]["current_drawer"] = name
+    return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"])
 
 @app.route("/guess", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def guess():
-    return render_template("Guessing.html")
+    room = session.get("room")
+    time.sleep(0.5)
+    return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"])
 
 @app.route("/leaderboard", methods=["GET", "POST"]) # !-- INCOMPLETE --!
 def leaderboard():
@@ -447,10 +454,10 @@ def connect(auth):
     socketio.emit("username", rooms[room]["players"])
 
 @socketio.on("new_round")
-def new_round(data):
-    room = data["room"]
+def new_round():
+    room = session.get("room")
     players = rooms[room]["players"]
-    current_drawer = data["current_drawer"]
+    current_drawer = rooms[room]["current_drawer"]
 
     next_index = (players.index(current_drawer) + 1) % len(players)
     next_drawer = players[next_index]
