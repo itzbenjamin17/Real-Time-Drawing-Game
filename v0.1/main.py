@@ -267,6 +267,12 @@ def index():
 
         if not name:
             return render_template("index.html", error="Please enter a name.", code=code, name=name)
+        
+        if create != False:
+            return redirect(url_for("create_room"))
+
+        if code not in rooms:
+            return render_template("index.html", error="Room does not exist.", code=code, name=name)
 
         if join != False:
             if not code:  # and not code:
@@ -277,12 +283,6 @@ def index():
 
             if name in rooms[room]["players"]:
                 return render_template("index.html", error="Username is already taken", code=code, name=name)
-
-        if create != False:
-            return redirect(url_for("create_room"))
-
-        if code not in rooms:
-            return render_template("index.html", error="Room does not exist.", code=code, name=name)
 
         print("After setting session:", session)
 
@@ -403,16 +403,18 @@ def game():
     name = session.get("name")
     room = session.get("room")
 
-    rooms[room]["current_drawer"] = name
-    rooms[room]["correct"] = 0
+    rooms[room]["current_drawer"] = name # Sets the current drawer to the player rendering '/game'.
+    rooms[room]["correct"] = 0 # Reset correct guesses to 0 at the start of every round.
     return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"])
+    # Sends drawer data and timer parameters to the frontend. 
 
 
 @app.route("/guess", methods=["GET", "POST"])  # !-- INCOMPLETE --!
 def guess():
     room = session.get("room")
-    time.sleep(0.5)
+    time.sleep(0.5) # Adds a delay to prevent clients joining before the host.
     return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"])
+    # Sends drawer data and timer parameters to the frontend. 
 
 
 @app.route("/leaderboard", methods=["GET", "POST"])  # !-- INCOMPLETE --!
@@ -599,6 +601,7 @@ def disconnect():
 def handle_score_calculation(data):
     room = session.get("room")
     name = session.get("name")
+    rooms[room]["correct"] += 1 # Increases the counter.
 
     # Get timer values from client
     minutes = int(data.get("minutes", 0))
@@ -631,6 +634,9 @@ def handle_score_calculation(data):
         "score": score,
         "total": rooms[room]["scores"][name]
     }, room=request.sid)
+
+    if rooms[room]["correct"] == (len(rooms[room]["players"]) - 1):
+        socketio.emit("all_guessed")
 
 
 if __name__ == "__main__":
