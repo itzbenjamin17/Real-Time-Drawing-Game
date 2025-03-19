@@ -1,12 +1,12 @@
 // ---Variables---
 let mouseX = 0;
 let mouseY = 0;
-let minutes = "3";
-let tenSeconds = "0";
-let seconds = "0";
+let minutes = window.minutes;
+let tenSeconds = window.ten_secs;
+let seconds = window.secs;
 
 // ---Data from Back-End---
-let word = "apple";
+// let word = "apple";
 
 // Get usernames and scores for each player
 let username1 = "shel";
