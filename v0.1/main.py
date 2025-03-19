@@ -88,7 +88,8 @@ class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(6), unique=True, nullable=False)
     host = db.Column(db.String(50), nullable=False)
-    num_of_rounds = db.Column(db.Integer, default=3)
+    num_of_rounds = db.Column(db.Integer, default=5)
+    current_round = db.Column(db.Integer, default=1)
     num_of_players = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=db.func.now())
 
