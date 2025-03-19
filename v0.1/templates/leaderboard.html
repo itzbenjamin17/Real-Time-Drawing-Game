@@ -25,7 +25,18 @@
     <form action="{{ url_for('index') }}" method="POST">
         <button type="submit" name="return">Return to Home Page</button>
     </form>
-
-    <script src="{{ url_for('static', filename='js/create room.js') }}"></script>
 </body>
 </html>
+
+<script text="text/javascript">
+    window.playerData = {{ data | tojson }};
+    console.log(window.playerData);
+
+    window.scores = window.playerData.scores;
+    window.username = window.playerData.individual_username;
+
+    console.log(window.scores);
+    console.log(window.username);
+</script>
+
+<script src="{{ url_for('static', filename='js/create room.js') }}"></script>
