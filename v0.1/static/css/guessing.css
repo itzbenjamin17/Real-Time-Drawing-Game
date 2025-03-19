@@ -8,6 +8,31 @@ body {
   gap: 5px;
 }
 
+.leaderboard-container {
+  text-align: center;
+  margin-top: 0; 
+  width: 150px; 
+  height: 450px; 
+  overflow-y: auto; 
+}
+
+.leaderboard-table {
+  border-collapse: collapse;
+  width: 100%; 
+}
+
+.leaderboard-table th, .leaderboard-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+  background-color: white;
+}
+
+.leaderboard-table th {
+  background-color: #4CAF50;
+  color: white;
+}
+
 .top {
   display: flex;
   justify-content: center;
