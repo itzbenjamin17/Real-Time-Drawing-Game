@@ -546,7 +546,6 @@ def new_round():
 
 @socketio.on("drawing_update")
 def drawing_update(data):
-    print("Sending drawing update...")
     room = session.get("room")
 
     image_data = data.get("image", "")
@@ -561,10 +560,7 @@ def drawing_update(data):
         print("Error decoding Base64:", error)
         return
 
-    print(f"Received drawing from {session.get('name')} in room {room}.")
-
     socketio.emit("display_drawing", {"image": data["image"]})
-    print("Emitted display_drawing event to room:", room)
 
 
 @socketio.on("disconnect")
