@@ -1,9 +1,12 @@
 // ---Variables---
 let mouseX = 0;
 let mouseY = 0;
-let minutes = "0";
-let tenSeconds = "1";
-let seconds = "0";
+
+console.log(window.mins, window.ten_secs, window.secs);
+
+let minutes = window.minutes;
+let tenSeconds = window.ten_secs;
+let seconds = window.secs;
 
 // ---Data from Back-End---
 let word = "apple";
