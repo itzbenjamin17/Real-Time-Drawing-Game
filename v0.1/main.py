@@ -38,6 +38,7 @@ def generate_unique_code(Length):
 
     return code
 
+
 def sec_to_timer(secs):
     '''
     Used to calculate the timer parameters for drawing and guessing, given a duration in seconds.
@@ -48,6 +49,7 @@ def sec_to_timer(secs):
 
     return (mins, ten_seconds, seconds)
 
+
 def timer_to_sec(mins, ten_seconds, seconds):
     '''
     Used to convert the timer parameters back into seconds.
@@ -55,6 +57,7 @@ def timer_to_sec(mins, ten_seconds, seconds):
     secs = (mins * 60) + (ten_seconds * 10) + seconds
 
     return secs
+
 
 def calc_score(timer, room, max_score=100, k=1):
     '''
@@ -368,7 +371,7 @@ def create_room():
         for time in ["mins", "ten_seconds", "seconds"]:
             rooms[room][time] = times[count]
             count += 1
-        
+
         defaultWords = ["horse", "suitcase", "rain", "socks", "grapes",
                         "skateboard", "dream", "cat", "fly", "bark",
                         "solar system", "hip", "fist", "fruit", "saltwater",
@@ -579,6 +582,44 @@ def disconnect():
     print(f"{name} has left the room {room}")
 
     socketio.emit("update_players", rooms[room]["players"])
+
+
+@socketio.on("calculate_score")
+def handle_score_calculation(data):
+    room = session.get("room")
+    name = session.get("name")
+
+    # Get timer values from client
+    minutes = int(data.get("minutes", 0))
+    ten_seconds = int(data.get("ten_seconds", 0))
+    seconds = int(data.get("seconds", 0))
+
+    # Convert to total seconds remaining
+    timer_seconds = timer_to_sec(minutes, ten_seconds, seconds)
+
+    # Calculate score using existing function
+    score = calc_score(timer_seconds, room)
+
+    # Initialize scores dictionary if needed
+    if "scores" not in rooms[room]:
+        rooms[room]["scores"] = {
+            player: 0 for player in rooms[room]["players"]}
+
+    # Add points to player's score
+    if name in rooms[room]["scores"]:
+        rooms[room]["scores"][name] += score
+    else:
+        rooms[room]["scores"][name] = score
+
+    print(
+        f"Player {name} scored {score} points (total: {rooms[room]['scores'][name]})")
+
+    # Send back the updated score
+    socketio.emit("score_updated", {
+        "player": name,
+        "score": score,
+        "total": rooms[room]["scores"][name]
+    }, room=request.sid)
 
 
 if __name__ == "__main__":

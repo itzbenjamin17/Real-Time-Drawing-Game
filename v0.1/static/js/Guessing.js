@@ -156,6 +156,12 @@ function correctGuess() {
     
     // Display the word at the top
     displayWord(word, true);
+
+    socketio.emit("calculate_score", {
+        "minutes": minutes,
+        "ten_seconds": tenSeconds,
+        "seconds": seconds
+    });
 }
 
 // Need logic that checks if all guessing players have guessed correctly
@@ -289,6 +295,15 @@ socketio.on("display_drawing", (data) => {
     };
 });
 
+socketio.on("score_updated", (data) => {
+    console.log(`Scored ${data.score} points! New total: ${data.total}`);
+    
+    // NO idea who the current player is
+    score1 = data.total;
+    
+    // Update the leaderboard display
+    loadLeaderboard();
+});
 
 // Chat
 const sendMessage = () => {
