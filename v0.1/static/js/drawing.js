@@ -6,7 +6,7 @@ let colour = "black";
 
 let mode = "pencil";
 
-console.log(window.mins, window.ten_secs, window.secs);
+console.log(window.minutes, window.ten_secs, window.secs);
 
 let minutes = window.minutes;
 let tenSeconds = window.ten_secs;
@@ -389,6 +389,25 @@ socketio.on("message", (data) => {
     console.log("Still connected...")
 });
 
+// Used to receive the usernames of the whole lobby.
+  socketio.on("username", (playerName) => {
+    console.log("New Player:", playerName);
+});
+
+// Used to receive the client's individual username from the backend.
+socketio.on("individual_username", (username) => {
+    console.log("Received Username:", username);
+    individualUsername = username;
+    console.log("Client's Username:", individualUsername);
+});
+
+// Used to receive the players' scores.
+socketio.on("scores", (scores) => {
+    console.log("Received Scores:", scores);
+    playerScores = scores;
+    console.log("Player Scores:", playerScores);
+});
+
 // Choosing Words
 socketio.on('chooseWords', (words) => {
     const wordList = document.getElementById('word-list');
@@ -429,7 +448,7 @@ const sendDrawing = () => {
     const canvas = document.getElementById("DrawingCanvas");
     const dataURL = canvas.toDataURL();
 
-    console.log("Sending drawing update:", dataURL.slice(0, 50) + "...");
+    //console.log("Sending drawing update:", dataURL.slice(0, 50) + "...");
     socketio.emit("drawing_update", {"image": dataURL});
 };
 
