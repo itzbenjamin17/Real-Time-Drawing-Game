@@ -1,8 +1,8 @@
 // ---Variables---
 let mouseX = 0;
 let mouseY = 0;
-let minutes = "3";
-let tenSeconds = "0";
+let minutes = "0";
+let tenSeconds = "1";
 let seconds = "0";
 
 // ---Data from Back-End---
@@ -102,6 +102,11 @@ function runTimer() {
                 stopTimer();
                 console.log("Time's Up! The word was: " + word)
                 // Need to add logic to end the round and move on to the next
+                
+                // Store data (username, score, current round, etc.)
+
+                // Redirect to new round
+                socketio.emit("new_round");
             }
 
             else {
