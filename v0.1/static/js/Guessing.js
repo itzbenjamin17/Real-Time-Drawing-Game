@@ -1,12 +1,15 @@
 // ---Variables---
 let mouseX = 0;
 let mouseY = 0;
-let minutes = "0";
-let tenSeconds = "1";
-let seconds = "0";
+let guessed = false;
+
+console.log(window.mins, window.ten_secs, window.secs);
+
+let minutes = window.minutes;
+let tenSeconds = window.ten_secs;
+let seconds = window.secs;
 
 // ---Data from Back-End---
-let word = "apple";
 
 // Get usernames and scores for each player
 let username1 = "shel";
@@ -100,13 +103,14 @@ function runTimer() {
             if (minutes == "0") {
                 addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
-                console.log("Time's Up! The word was: " + word)
                 // Need to add logic to end the round and move on to the next
                 
                 // Store data (username, score, current round, etc.)
 
-                // Redirect to new round
-                socketio.emit("new_round");
+                // Redirect to new round after 5 seconds
+                setTimeout(() => {
+                    socketio.emit("new_round");
+                }, 5000);
             }
 
             else {
@@ -143,6 +147,7 @@ function stopTimer() {
 
 // Player has guesssed correctly
 function correctGuess() {
+    guessed = true
     Wcnvs.clearRect(0, 0, 700, 75)
     
     // Background for Word Canvas
@@ -289,10 +294,9 @@ socketio.on("display_drawing", (data) => {
 const sendMessage = () => {
     const message = document.getElementById("message"); // fetch message
     if (message.value == "") return; // if empty do nothing
-    socketio.emit("message", {data: message.value}); // send to other players
-    if (message.value == word) {
-        socketio.emit("message", {data: "You've Guessed Correctly!"});
-        correctGuess();
+    if (!guessed) {
+        socketio.emit("message", {data: message.value}); // send to other players
+        if (message.value == word) correctGuess();
     }
     message.value = ""; // empties box
 };

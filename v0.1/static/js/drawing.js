@@ -6,9 +6,11 @@ let colour = "black";
 
 let mode = "pencil";
 
-let minutes = "0";
-let tenSeconds = "1";
-let seconds = "0";
+console.log(window.mins, window.ten_secs, window.secs);
+
+let minutes = window.minutes;
+let tenSeconds = window.ten_secs;
+let seconds = window.secs;
 
 let isDrawing = false;
 
@@ -16,7 +18,7 @@ let lastX = 0;
 let lastY = 0;
 
 // ---Data from Back-End---
-let word = "apple";
+let theme = ""
 
 // Get usernames and scores for each player
 let username1 = "shel";
@@ -243,13 +245,17 @@ function runTimer() {
             if (minutes == "0") {
                 addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
-                console.log("Time's Up! The word was: " + word);
                 // Need to add logic to end the round and move on to the next
                 
                 // Store data (username, score, current round, etc.)
 
-                // Redirect to new round
-                socketio.emit("new_round");
+                // Redirect to new round after 5 seconds
+                setTimeout(() => {
+                    socketio.emit("new_round");
+                }, 5000);
+
+                // Display the word to the player
+                socketio.emit("message", {data: "Time's up! The theme was: " + theme});
             }
             else {
                 seconds = "9";
@@ -390,6 +396,7 @@ socketio.on('chooseWords', (words) => {
             document.getElementById('word-selection-modal').style.display = 'none';
             timer = setInterval(runTimer, 1000);
             addText(Wcnvs, "50", "center", word, 350, 55);
+            theme = word
         };
         wordList.appendChild(listItem);
     });
