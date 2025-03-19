@@ -72,7 +72,7 @@ function displayWord(word, guessed) {
         displayedWord = displayedWord.slice(0, -1);
         
         let textSize = "50";
-        if (length > 10) textSize = "30";
+        if (length > 15) textSize = "40";
         addText(Wcnvs, textSize, "center", displayedWord, 350, 55);
     }
 }
