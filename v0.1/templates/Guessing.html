@@ -36,10 +36,20 @@
     <!--Middle Row-->
     <div class="middle">
 
-    <!--Leaderboard Canvas-->
-    <canvas id="LeaderboardCanvas" width="150" height="450" style="border:10px solid #000000;" >
-      Your browser does not support the HTML canvas tag.
-    </canvas>
+    <!--Leaderboard Table-->
+    <div class="leaderboard-container">
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th style="text-align: center;">Player</th>
+            <th style="text-align: center;">Score</th>
+          </tr>
+        </thead>
+        <tbody id="players-list">
+          <!-- Players' data will be dynamically inserted here -->
+        </tbody>
+      </table>
+    </div>
 
     <img id="DrawingImage" width="700" height="450" style="border:10px solid #000000;">
 
