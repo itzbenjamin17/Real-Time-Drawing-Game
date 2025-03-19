@@ -1,5 +1,4 @@
 function renderLeaderboard() {
-
     const playersData = JSON.parse(localStorage.getItem('playersData'));
 
     if (!playersData) {
@@ -21,12 +20,6 @@ function renderLeaderboard() {
 }
 
 
-const playersData = {
-    "Player 1": 10,
-    "Player 2": 8,
-    "Player 3": 15,
-    "Player 4": 5
-};
-localStorage.setItem('playersData', JSON.stringify(playersData));
+
 // Call renderLeaderboard when the page is loaded
 document.addEventListener("DOMContentLoaded", renderLeaderboard);
