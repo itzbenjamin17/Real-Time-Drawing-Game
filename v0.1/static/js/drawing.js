@@ -59,9 +59,7 @@ var Wcnvs = wordCanvas.getContext("2d");
 var timerCanvas = document.getElementById("TimerCanvas");
 var TIcnvs = timerCanvas.getContext("2d");
 
-// Leaderboard Canvas
-var leaderboardCanvas = document.getElementById("LeaderboardCanvas");
-var Lcnvs = leaderboardCanvas.getContext("2d");
+
 
 // Create Drawing Canvas
 var drawingCanvas = document.getElementById("DrawingCanvas");
@@ -287,80 +285,28 @@ function stopTimer() {
     clearInterval(timer);
 }
 
-function loadLeaderboard() {
-    // Clear the previous canvas
-    Lcnvs.clearRect(0, 0, 150, 450)
 
-    // Background and Outline
-    Lcnvs.fillStyle = "#ffd296";
-    Lcnvs.fillRect(0, 0, 150, 450)
+function renderLeaderboard() {
 
-    // Load Player List
-    // 1st Place
-    Lcnvs.strokeStyle = "black";
-    Lcnvs.lineWidth = 2;
-    Lcnvs.strokeRect(10, 10, 130, 75);
+    const playersData = JSON.parse(localStorage.getItem('playersData'));
 
-    Lcnvs.fillStyle = "white";
-    Lcnvs.fillRect(10, 10, 130, 75);
-
-    addText(Lcnvs, "20", "center", "1st", 75, 35);
-    addText(Lcnvs, "20", "center", username1, 75, 55);
-    addText(Lcnvs, "20", "center", score1.toString(), 75, 75);
-
-    if (numOfPlayers >= 2) {
-        // 2nd Place
-        Lcnvs.strokeStyle = "black";
-        Lcnvs.strokeRect(10, 95, 130, 75);
-
-        Lcnvs.fillStyle = "white";
-        Lcnvs.fillRect(10, 95, 130, 75);
-
-        addText(Lcnvs, "20", "center", "2nd", 75, 120);
-        addText(Lcnvs, "20", "center", username2, 75, 140);
-        addText(Lcnvs, "20", "center", score2.toString(), 75, 160);
-
-        if (numOfPlayers >= 3) {
-            // 3rd Place
-            Lcnvs.strokeStyle = "black";
-            Lcnvs.strokeRect(10, 185, 130, 75);
-
-            Lcnvs.fillStyle = "white";
-            Lcnvs.fillRect(10, 185, 130, 75);
-
-            addText(Lcnvs, "20", "center", "3rd", 75, 210);
-            addText(Lcnvs, "20", "center", username3, 75, 230);
-            addText(Lcnvs, "20", "center", score3.toString(), 75, 250);
-
-            if (numOfPlayers >= 4) {
-                // 4th Place
-                Lcnvs.strokeStyle = "black";
-                Lcnvs.strokeRect(10, 275, 130, 75);
-
-                Lcnvs.fillStyle = "white";
-                Lcnvs.fillRect(10, 275, 130, 75);
-
-                addText(Lcnvs, "20", "center", "4th", 75, 300);
-                addText(Lcnvs, "20", "center", username4, 75, 320);
-                addText(Lcnvs, "20", "center", score4.toString(), 75, 340);
-
-                if (numOfPlayers >= 5) {
-                    // 5th Place
-                    Lcnvs.strokeStyle = "black";
-                    Lcnvs.strokeRect(10, 365, 130, 75);
-
-                    Lcnvs.fillStyle = "white";
-                    Lcnvs.fillRect(10, 365, 130, 75);
-
-                    addText(Lcnvs, "20", "center", "5th", 75, 390);
-                    addText(Lcnvs, "20", "center", username5, 75, 410);
-                    addText(Lcnvs, "20", "center", score5.toString(), 75, 430);
-                }
-            }
-        }
+    if (!playersData) {
+        console.error("No player data found!");
+        return;
     }
-}
+    
+    const playersList = document.getElementById("players-list");
+    playersList.innerHTML = "";
 
+    // Sort players by score (highest first)
+    const sortedPlayers = Object.entries(playersData).sort((a, b) => b[1] - a[1]);
+
+    sortedPlayers.forEach(([name, score]) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${name}</td><td>${score}</td>`;
+        playersList.appendChild(row);
+    });
+}
 // ---Socketio---
 
 var socketio = io();
@@ -510,4 +456,22 @@ addText(Bcnvs, "40", "center", "Back", 75, 50);
 // Timer Text 
 addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
 
-loadLeaderboard();
+const playersData = {
+    "Player 1": 10,
+    "Player 2": 8,
+    "Player 3": 15,
+    "Player 4": 5,
+    "Player 5": 5,
+    "Player 6": 5,
+    "Player 7": 5,
+    "Player 8": 5,
+    "Player 9": 5,
+    "Player 10": 5,
+    "Player 11": 5,
+    "Player 12": 5,
+    "Player 13": 5,
+    "Player 14": 5,
+};
+localStorage.setItem('playersData', JSON.stringify(playersData));
+
+renderLeaderboard();
