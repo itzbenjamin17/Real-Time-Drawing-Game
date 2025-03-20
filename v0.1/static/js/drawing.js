@@ -219,14 +219,11 @@ function runTimer() {
             if (minutes == "0") {
                 addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
-                // Need to add logic to end the round and move on to the next
-                
-                // Store data (username, score, current round, etc.)
 
                 // Redirect to new round after 5 seconds
                 setTimeout(() => {
                     socketio.emit("new_round");
-                }, 5000);
+                }, 3000);
 
                 // Display the word to the player
                 socketio.emit("message", {data: "Time's up! The word was: " + theme});
@@ -366,7 +363,7 @@ socketio.on("all_guessed", () => {
     stopTimer();
     setTimeout(() => {
         socketio.emit("new_round");
-    }, 5000);
+    }, 3000);
     socketio.emit("message", {data: "Round over, everyone guessed correctly! The word was: " + theme});
 });
 

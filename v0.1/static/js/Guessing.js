@@ -268,7 +268,7 @@ const sendMessage = () => {
     const message = document.getElementById("message"); // fetch message
     if (message.value == "") return; // if empty do nothing
     if (!guessed) {
-        if (message.value == word) correctGuess();
+        if (message.value.toLowerCase() == word) correctGuess();
         else socketio.emit("message", {data: message.value}); // send to other players
     }
     message.value = ""; // empties box
