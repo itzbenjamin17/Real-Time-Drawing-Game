@@ -24,8 +24,6 @@ socketio = SocketIO(app)
 api = Api(app)
 db = SQLAlchemy(app)
 
-rooms = {}
-
 
 def generate_unique_code(Length):
     '''
@@ -36,9 +34,8 @@ def generate_unique_code(Length):
         for _ in range(Length):
             code += random.choice(ascii_uppercase)
 
-        if code not in rooms:
+        if not Room.query.filter_by(code=code).first():
             break
-
     return code
 
 
@@ -68,10 +65,10 @@ def calc_score(timer, room, max_score=100, k=1):
     Requires the timer data from the frontend, as well as the room code.
     The faster the guess was, the higher the score.
     '''
-    duration = rooms[room]["roundDuration"]
+    duration = room.round_duration
     time_ratio = timer / duration
 
-    drawer = rooms[room]["current_drawer"]
+    drawer = room.current_drawer
 
     additional_score = max_score * math.exp(-k * (1 - time_ratio))
     drawer_score = round((additional_score * 0.5))
@@ -82,15 +79,6 @@ def calc_score(timer, room, max_score=100, k=1):
 
 
 class Room(db.Model):
-    """
-    Room table:
-    - id | code | host | num_of_rounds | num_of_players | created_at
-    - Defines a one-to-many relationship with Player and Round tables.
-    - Players and Rounds are deleted when a Room is deleted.
-    - Can access the room a player is in using player = Player.query.first() then using player.room
-    - Can access the players in a room using room = Room.query.first() then using room.players
-    - Delete orphan is used to delete players and rounds when a room is deleted.
-    """
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(6), unique=True, nullable=False)
     host = db.Column(db.String(50), nullable=False)
@@ -98,9 +86,40 @@ class Room(db.Model):
     current_round = db.Column(db.Integer, default=1)
     num_of_players = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=db.func.now())
+    max_players = db.Column(db.Integer, default=10)
+    round_duration = db.Column(db.Integer, default=60)
+    current_drawer = db.Column(db.String(50))
+    correct_guesses = db.Column(db.Integer, default=0)
+    mins = db.Column(db.Integer, default=0)
+    ten_seconds = db.Column(db.Integer, default=0)
+    seconds = db.Column(db.Integer, default=0)
+    word_list = db.Column(db.Text)
+    player_order = db.Column(db.Text)
+    messages = db.Column(db.Text, default="[]")
+    scores = db.Column(db.Text, default="{}")
 
     players = db.relationship('Player', backref='room',
                               cascade="all, delete-orphan", lazy=True)
+
+    def get_player_names(self):
+        return [player.name for player in self.players]
+
+    def get_messages(self):
+        return json.loads(self.messages)
+
+    def add_message(self, message):
+        messages = json.loads(self.messages)
+        messages.append(message)
+        self.messages = json.dumps(messages)
+
+    def get_scores(self):
+        return json.loads(self.scores)
+
+    def set_player_order(self, order):
+        self.player_order = json.dumps(order)
+
+    def get_word_list(self):
+        return json.loads(self.word_list)
 
 
 class Player(db.Model):
@@ -109,6 +128,7 @@ class Player(db.Model):
     score = db.Column(db.Integer, default=0)
     is_drawing = db.Column(db.Boolean, default=False)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+    socket_id = db.Column(db.String(100))
 
 
 class Report(db.Model):
@@ -261,33 +281,32 @@ def index():
         join = request.form.get("join", False)
         create = request.form.get("create", False)
 
-        room = code
-
-        session["room"] = room
-        session["name"] = name
-
-        print(name, code, join, create)
+        room_obj = Room.query.filter_by(code=code).first() if code else None
 
         if not name:
             return render_template("index.html", error="Please enter a name.", code=code, name=name)
-        
+
         if create != False:
+            session["name"] = name
             return redirect(url_for("create_room"))
 
-        if code not in rooms:
+        if not room_obj:
             return render_template("index.html", error="Room does not exist.", code=code, name=name)
 
         if join != False:
             if not code:  # and not code:
                 return render_template("index.html", error="Please enter a room code.", code=code, name=name)
 
-            if rooms[room]["members"] > rooms[room]["maxPlayers"]:
+            if room_obj.num_of_players >= room_obj.max_players:
                 return render_template("index.html", error="Room is full", code=code, name=name)
 
-            if name in rooms[room]["players"]:
+            if name in room_obj.get_player_names():
                 return render_template("index.html", error="Username is already taken", code=code, name=name)
 
-        print("After setting session:", session)
+        session["room"] = code
+        session["name"] = name
+
+        print(name, code, join, create)
 
         return redirect(url_for("room"))
 
@@ -305,38 +324,32 @@ def room():
 
         if not room:
             room = generate_unique_code(4)
-            rooms[room] = {
-                "members": 0,
-                "messages": [],
-                "players": []
-            }
+            new_room = Room(code=room, host=name)
+            db.session.add(new_room)
+            db.session.commit()
         session["room"] = room
 
     room = session.get("room")
-    if room is None or session.get("name") is None or room not in rooms:
-        print(room)
-        print(session.get("name"))
-        print(room in rooms)
-        print("Room is missing.")
+    if room is None or session.get("name") is None:
         return redirect(url_for("index"))
 
-    if 'players' not in rooms[room]:
-        rooms[room]["players"] = []
-        rooms[room]["sid_map"] = {}
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return redirect(url_for("index"))
 
-    if name not in rooms[room]["players"]:
-        rooms[room]["players"].append(name)
+    player = Player.query.filter_by(name=name, room_id=room_obj.id).first()
+    if not player:
+        player = Player(name=name, room_id=room_obj.id)
+        db.session.add(player)
+        room_obj.num_of_players += 1
+        db.session.commit()
 
-    rooms[room]["members"] += 1
+    player_names = room_obj.get_player_names()
+    socketio.emit("username", player_names)
 
-    print(f"Emitting players list to room {room}: {rooms[room]['players']}")
-    socketio.emit("username", rooms[room]["players"])
+    host = (room_obj.host == name)
 
-    host = rooms[room]["players"][0] == name
-    print(f"Host: {host}")
-    print(f"Players: {rooms[room]['players']}")
-
-    return render_template("room.html", code=room, messages=rooms[room]["messages"], host=host)
+    return render_template("room.html", code=room, messages=room_obj.get_messages(), host=host)
 
 
 @app.route("/create-room", methods=["GET", "POST"])  # --- COMPLETE ---
@@ -347,66 +360,57 @@ def create_room():
         return redirect(url_for("index"))
 
     room = generate_unique_code(4)
-    rooms[room] = {
-        "members": 0,
-        "messages": []
-    }
+    new_room = Room(code=room, host=name)
+    db.session.add(new_room)
+    db.session.commit()
     session["room"] = room
 
     if request.method == "POST":
         try:
-            maxPlayers = request.form.get("maxPlayers")
-            maxPlayers = int(maxPlayers)
-            rooms[room]["maxPlayers"] = maxPlayers
+            new_room.max_players = int(request.form.get("maxPlayers"))
         except:
-            rooms[room]["maxPlayers"] = 10
+            new_room.max_players = 10
         try:
-            rounds = request.form.get("rounds")
-            rounds = int(rounds)
-            rooms[room]["rounds"] = rounds
+            new_room.num_of_rounds = int(request.form.get("rounds"))
         except:
-            rooms[room]["rounds"] = 5
+            new_room.num_of_rounds = 5
         try:
-            roundDuration = request.form.get("roundDuration")
-            roundDuration = int(roundDuration)
-            rooms[room]["roundDuration"] = roundDuration
+            new_room.round_duration = int(request.form.get("roundDuration"))
         except:
-            rooms[room]["roundDuration"] = 60
+            new_room.round_duration = 60
 
-        times = sec_to_timer(rooms[room]["roundDuration"])
-        count = 0
-        for time in ["mins", "ten_seconds", "seconds"]:
-            rooms[room][time] = times[count]
-            count += 1
+        times = sec_to_timer(new_room.round_duration)
+        new_room.mins, new_room.ten_seconds, new_room.seconds = times
 
-        defaultWords = ["horse", "suitcase", "rain", "socks", "grapes",
-                        "skateboard", "dream", "cat", "fly", "monster",
-                        "solar system", "hip", "fist", "fruit", "dragon",
-                        "penguin", "trap", "glove", "tail", "jellyfish", "snail",
-                        "chimney", "lolipop", "rival", "caterpillar", "football",
-                        "computer", "camera", "sun", "grandpa", "octopus", "iron", 
-                        "hospital", "jungle", "astronaut", "dollar", "empty", 
-                        "positive", "circus", "party", "shipwreck",  "ceiling fan", 
-                        "sleeve", "hunter", "chest", "mirror", "signal", "company", 
-                        "stew", "record", "zoom", "gold medal", "dodgeball", 
-                        "cartoon", "time machine", "cleaning spray", "garden hose", 
-                        "earthquake", "photosynthesis", "airport security", "taxi", 
-                        "living room", "schedule", "knowledge", "destruction", 
-                        "bar of chocolate", "cell phone charger"]
-        customWords = json.loads(request.form.get("customWords"))
-        defaultWords.extend(customWords)
-        rooms[room]['wordList'] = defaultWords
+        default_words = ["horse", "suitcase", "rain", "socks", "grapes",
+                         "skateboard", "dream", "cat", "fly", "monster",
+                         "solar system", "hip", "fist", "fruit", "dragon",
+                         "penguin", "trap", "glove", "tail", "jellyfish", "snail",
+                         "chimney", "lolipop", "rival", "caterpillar", "football",
+                         "computer", "camera", "sun", "grandpa", "octopus", "iron",
+                         "hospital", "jungle", "astronaut", "dollar", "empty",
+                         "positive", "circus", "party", "shipwreck",  "ceiling fan",
+                         "sleeve", "hunter", "chest", "mirror", "signal", "company",
+                         "stew", "record", "zoom", "gold medal", "dodgeball",
+                         "cartoon", "time machine", "cleaning spray", "garden hose",
+                         "earthquake", "photosynthesis", "airport security", "taxi",
+                         "living room", "schedule", "knowledge", "destruction",
+                         "bar of chocolate", "cell phone charger"]
 
-        print(rooms[room])
+        custom_words = json.loads(request.form.get("customWords", "[]"))
+        default_words.extend(custom_words)
+        new_room.word_list = json.dumps(default_words)
+
+        db.session.commit()
 
         return jsonify({'status': 'success', 'room': room})
 
-    return render_template("create room.html", code=room, messages=rooms[room]["messages"])
+    return render_template("create room.html", code=room, messages=new_room.get_messages())
 
 
 @app.route("/join-room", methods=["POST"])  # --- COMPLETE ---
 def join_room(room):
-    return render_template("room.html", code=room, messages=rooms[room]["messages"])
+    return render_template("room.html", code=room, messages=Room.query.filter_by(code=room).first().get_messages())
 
 
 @app.route("/game", methods=["GET", "POST"])  # !-- INCOMPLETE --!
@@ -414,35 +418,44 @@ def game():
     name = session.get("name")
     room = session.get("room")
 
-    rooms[room]["current_drawer"] = name # Sets the current drawer to the player rendering '/game'.
-    rooms[room]["correct"] = 0 # Reset correct guesses to 0 at the start of every round.
-    if 'current_round' not in rooms[room]:
-        print("Creating 'current_round'...")
-        rooms[room]["current_round"] = 1
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return redirect(url_for("index"))
+
+    # Sets the current drawer to the player rendering '/game'.
+    room_obj.current_drawer = name
+    # Reset correct guesses to 0 at the start of every round.
+    room_obj.correct_guesses = 0
+    if not room_obj.current_round:
+        room_obj.current_round = 1
     else:
-        print("Incrementing 'current_round'...")
-        rooms[room]["current_round"] += 1
+        room_obj.current_round += 1
 
-
+    db.session.commit()
 
     try:
-        return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"], scores = rooms[room]["scores"])
+        return render_template("drawing.html", current_drawer=room_obj.current_drawer, mins=room_obj.mins, ten_secs=room_obj.ten_seconds, secs=room_obj.seconds, scores=room_obj.get_scores())
     except:
-        scores = {username:0 for username in rooms[room]["players"] }
-        return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"], scores = scores)
-    # Sends drawer data and timer parameters to the frontend. 
+        scores = {username: 0 for username in room_obj.get_player_names()}
+        return render_template("drawing.html", current_drawer=room_obj.current_drawer, mins=room_obj.mins, ten_secs=room_obj.ten_seconds, secs=room_obj.seconds, scores=scores)
+    # Sends drawer data and timer parameters to the frontend.
 
 
 @app.route("/guess", methods=["GET", "POST"])  # !-- INCOMPLETE --!
 def guess():
     room = session.get("room")
-    time.sleep(0.5) # Adds a delay to prevent clients joining before the host.
+    time.sleep(0.5)  # Adds a delay to prevent clients joining before the host.
+
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return redirect(url_for("index"))
+
     try:
-        return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"], scores = rooms[room]["scores"])
+        return render_template("Guessing.html", current_drawer=room_obj.current_drawer, mins=room_obj.mins, ten_secs=room_obj.ten_seconds, secs=room_obj.seconds, scores=room_obj.get_scores())
     except:
-        scores = {username:0 for username in rooms[room]["players"] }
-        return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"], scores = scores)
-    # Sends drawer data and timer parameters to the frontend. 
+        scores = {username: 0 for username in room_obj.get_player_names()}
+        return render_template("Guessing.html", current_drawer=room_obj.current_drawer, mins=room_obj.mins, ten_secs=room_obj.ten_seconds, secs=room_obj.seconds, scores=scores)
+    # Sends drawer data and timer parameters to the frontend.
 
 
 @app.route("/leaderboard", methods=["GET", "POST"])  # !-- INCOMPLETE --!
@@ -450,9 +463,13 @@ def leaderboard():
     name = session.get("name")
     room = session.get("room")
 
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return redirect(url_for("index"))
+
     data = {
-        "scores": rooms[room]["scores"], # Sends a dictionary of scores.
-        "individual_username": name 
+        "scores": room_obj.get_scores(),  # Sends a dictionary of scores.
+        "individual_username": name
     }
 
     return render_template("leaderboard.html", data=data)
@@ -479,7 +496,11 @@ def admin_reports():
 @socketio.on("message")
 def message(data):
     room = session.get("room")
-    if room not in rooms:
+    if not room:
+        return
+
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
         return
 
     content = {
@@ -490,31 +511,46 @@ def message(data):
     print("Content:", content)
 
     socketio.emit("message", content)
-    rooms[room]["messages"].append(content)
-    print("Messages:", rooms[room]["messages"])
+    room_obj.add_message(content)
+    db.session.commit()
+    print("Messages:", room_obj.get_messages())
     print(f"{session.get('name')} said: {data['data']}")
 
 
 @socketio.on("start")
 def startGame():
     room = session.get('room')
-    rooms[room]['playerOrder'] = rooms[room]['players'].copy()
-    for sid, player in rooms[room]['sid_map'].items():
-        if player == rooms[room]['players'][0]:
-            socketio.emit('redirect', '/game', room=sid)
+    name = session.get('name')
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return
+    # Only the host (first player) should trigger starting the round.
+    if name != room_obj.host:
+        return
+    player_order = room_obj.get_player_names()
+    room_obj.set_player_order(player_order)
+    db.session.commit()
+    for player in room_obj.players:
+        if player.name == player_order[0]:
+            socketio.emit('redirect', '/game', room=player.socket_id)
         else:
-            socketio.emit('redirect', '/guess', room=sid)
+            socketio.emit('redirect', '/guess', room=player.socket_id)
 
 
 @socketio.on("ready")
 def sendWords():
     room = session.get('room')
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return
+
     words = []
-    wordList = rooms[room]['wordList'].copy()
+    word_list = room_obj.get_word_list()[:]
     for i in range(3):
-        word = random.choice(wordList)
-        words.append(word)
-        wordList.remove(word)
+        if word_list:
+            word = random.choice(word_list)
+            words.append(word)
+            word_list.remove(word)
     socketio.emit('chooseWords', words)
 
 
@@ -554,55 +590,72 @@ def connect(auth):
     name = session.get("name")
     if not room or not name:
         return
-    if room not in rooms:
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
         leave_room(room)
         return
 
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
 
-    if name not in rooms[room]["players"]:
-        rooms[room]["players"].append(name)
-    rooms[room]["sid_map"][request.sid] = name
+    # Always update the player's socket_id
+    player = Player.query.filter_by(name=name, room_id=room_obj.id).first()
+    if not player:
+        player = Player(name=name, room_id=room_obj.id)
+        db.session.add(player)
+        room_obj.num_of_players += 1
+    player.socket_id = request.sid
+    db.session.commit()
 
-    rooms[room]["members"] += 1
-    print(f"{name} joined room {room}")
+    # Instead of resetting scores to 0 on key mismatch,
+    # update current_scores by adding missing players, keeping existing scores intact.
+    current_scores = room_obj.get_scores()  # might be {} or partially filled
+    for player_name in room_obj.get_player_names():
+        if player_name not in current_scores:
+            current_scores[player_name] = 0
+    room_obj.scores = json.dumps(current_scores)
+    db.session.commit()
 
-    socketio.emit("username", rooms[room]["players"]) # Sends a list of players in the room.
-    socketio.emit("individual_username", name, room=request.sid) # Sends a string of the client's username.
+    player_names = room_obj.get_player_names()
+    socketio.emit("username", player_names)
+    socketio.emit("individual_username", name, room=request.sid)
     try:
-        socketio.emit("scores", rooms[room]["score"]) # Sends a dictionary of the players' scores.
+        socketio.emit("scores", room_obj.get_scores())
     except:
-        scores = {username: 0 for username in rooms[room]["players"]}
-        socketio.emit("scores", scores) # Sends a dictionary of the players' scores.
+        scores = {player_name: 0 for player_name in player_names}
+        socketio.emit("scores", scores)
 
 
 @socketio.on("new_round")
 def new_round():
     room = session.get("room")
-    players = rooms[room]["playerOrder"]
-    current_drawer = rooms[room]["current_drawer"]
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return
 
+    # End game if current_round is greater than or equal to num_of_rounds.
+    if room_obj.current_round > room_obj.num_of_rounds:
+        for player in room_obj.players:
+            socketio.emit('redirect', '/leaderboard', room=player.socket_id)
+        return
+
+    players = json.loads(room_obj.player_order)
+    current_drawer = room_obj.current_drawer
+
+    # Determine next drawer once.
     next_index = (players.index(current_drawer) + 1) % len(players)
     next_drawer = players[next_index]
-    drawerInRoom = False
 
-    while not drawerInRoom:
-        for sid, player in rooms[room]['sid_map'].items():
-            if rooms[room]["current_round"] == int(rooms[room]["rounds"]) * len(rooms[room]["players"]):
-                socketio.emit('redirect', '/leaderboard', room=sid)
-            elif player == next_drawer:
-                socketio.emit('redirect', '/game', room=sid)
-                drawerInRoom = True
-            else:
-                socketio.emit('redirect', '/guess', room=sid)
-        next_index = (next_index + 1) % len(players)
-        next_drawer = players[next_index]
+    # Emit redirect once for each player.
+    for player in room_obj.players:
+        if player.name == next_drawer:
+            socketio.emit('redirect', '/game', room=player.socket_id)
+        else:
+            socketio.emit('redirect', '/guess', room=player.socket_id)
 
 
 @socketio.on("drawing_update")
 def drawing_update(data):
-    #print("Sending drawing update...")
     room = session.get("room")
 
     image_data = data.get("image", "")
@@ -617,10 +670,7 @@ def drawing_update(data):
         print("Error decoding Base64:", error)
         return
 
-    #print(f"Received drawing from {session.get('name')} in room {room}.")
-
     socketio.emit("display_drawing", {"image": data["image"]})
-    #print("Emitted display_drawing event to room:", room)
 
 
 @socketio.on("disconnect")
@@ -629,24 +679,30 @@ def disconnect():
     name = session.get("name")
     leave_room(room)
 
-    if room in rooms and name in rooms[room]["players"]:
-        rooms[room]["players"].remove(name)
-        rooms[room]["members"] -= 1
-        if rooms[room]["members"] <= 0:
-            del rooms[room]
+    room_obj = Room.query.filter_by(code=room).first()
+    if room_obj:
+        player = Player.query.filter_by(name=name, room_id=room_obj.id).first()
+        if player:
+            db.session.delete(player)
+            room_obj.num_of_players -= 1
+            if room_obj.num_of_players <= 0:
+                db.session.delete(room_obj)
+            db.session.commit()
 
-    send({"name": name, "message": "has left the room"}, to=room)
-    print(f"{name} has left the room {room}")
-
-    socketio.emit("update_players", rooms[room]["players"])
+        send({"name": name, "message": "has left the room"}, to=room)
+        socketio.emit("update_players", room_obj.get_player_names())
 
 
 @socketio.on("calculate_score")
 def handle_score_calculation(data):
     room = session.get("room")
     name = session.get("name")
-    rooms[room]["correct"] += 1 # Increases the counter.
-    current_drawer = rooms[room]["current_drawer"]
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return
+
+    room_obj.correct_guesses += 1  # Increases the counter.
+    current_drawer = room_obj.current_drawer
 
     # Get timer values from client
     minutes = int(data.get("minutes", 0))
@@ -657,50 +713,56 @@ def handle_score_calculation(data):
     timer_seconds = timer_to_sec(minutes, ten_seconds, seconds)
 
     # Calculate score using existing function
-    score, drawer_score = calc_score(timer_seconds, room)
+    score, drawer_score = calc_score(timer_seconds, room_obj)
 
     # Initialize scores dictionary if needed
-    if "scores" not in rooms[room]:
-        rooms[room]["scores"] = {
-            player: 0 for player in rooms[room]["players"]}
+    scores = room_obj.get_scores()
+    if not scores:
+        scores = {player.name: 0 for player in room_obj.players}
 
     # Add points to player's score
-    if name in rooms[room]["scores"]:
-        rooms[room]["scores"][name] += score
+    if name in scores:
+        scores[name] += score
     else:
-        rooms[room]["scores"][name] = score
+        scores[name] = score
 
-    if current_drawer in rooms[room]["scores"]:
-        rooms[room]["scores"][current_drawer] += drawer_score
+    if current_drawer in scores:
+        scores[current_drawer] += drawer_score
     else:
-        rooms[room]["scores"][current_drawer] = drawer_score
+        scores[current_drawer] = drawer_score
 
+    room_obj.scores = json.dumps(scores)
+    db.session.commit()
 
-
-    print(
-        f"Player {name} scored {score} points (total: {rooms[room]['scores'][name]})")
+    print(f"Player {name} scored {score} points (total: {scores[name]})")
 
     # Send back the updated score
     socketio.emit("score_updated", {
-        "username": rooms[room]["players"],
-        "score": rooms[room]["scores"]
+        "username": room_obj.get_player_names(),
+        "score": scores
     })
 
-    if rooms[room]["correct"] == (len(rooms[room]["players"]) - 1):
+    if room_obj.correct_guesses == (len(room_obj.players) - 1):
         socketio.emit("all_guessed")
+
 
 @socketio.on("new_player_joined")
 def new_player_joined():
     room = session.get("room")
-    print("iam rujning")
-    if 'scores' not in rooms[room]:
-        rooms[room]["scores"] = {username: 0 for username in rooms[room]["playerOrder"]}
-    print(rooms[room]["playerOrder"])
-    print(rooms[room]["scores"])
+    room_obj = Room.query.filter_by(code=room).first()
+    if not room_obj:
+        return
+
+    if not room_obj.scores:
+        scores = {username: 0 for username in room_obj.get_player_names()}
+        room_obj.scores = json.dumps(scores)
+        db.session.commit()
+
     socketio.emit("score_updated", {
-        "username": rooms[room]["playerOrder"],
-        "score": rooms[room]["scores"]
-})
+        "username": room_obj.get_player_names(),
+        "score": room_obj.get_scores()
+    })
+
 
 if __name__ == "__main__":
     # Create database tables if they don't exist
