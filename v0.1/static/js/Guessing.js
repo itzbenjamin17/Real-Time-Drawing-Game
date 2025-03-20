@@ -9,26 +9,6 @@ let minutes = window.minutes;
 let tenSeconds = window.ten_secs;
 let seconds = window.secs;
 
-// ---Data from Back-End---
-
-// Get usernames and scores for each player
-let username1 = "shel";
-let score1 = 239;
-
-let username2 = "shell";
-let score2 = 2399;
-
-let username3 = "shelll";
-let score3 = 23999;
-
-let username4 = "shellll";
-let score4 = 239999;
-
-let username5 = "shelllll";
-let score5 = 2399999;
-
-let numOfPlayers = 5;
-
 // ---Define the Canvases---
 // Back Canvas
 var backCanvas = document.getElementById("BackCanvas");
@@ -186,8 +166,6 @@ function renderLeaderboard(playersData) {
         playersList.appendChild(row);
     });
 }
-
-
 
 // ---Socketio---
 

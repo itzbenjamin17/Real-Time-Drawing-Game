@@ -3,8 +3,10 @@ let mouseX = 0;
 let mouseY = 0;
 
 let colour = "black";
-
 let mode = "pencil";
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
 
 console.log(window.minutes, window.ten_secs, window.secs);
 
@@ -12,12 +14,6 @@ let minutes = window.minutes;
 let tenSeconds = window.ten_secs;
 let seconds = window.secs;
 
-let isDrawing = false;
-
-let lastX = 0;
-let lastY = 0;
-
-// ---Data from Back-End---
 let theme = ""
 
 // ---Images---
@@ -27,8 +23,7 @@ pencil.src = "static/pencil.png";
 const eraser = new Image();
 eraser.src = "static/eraser.png";
 
-// ---Define the Canvases---
-
+// ---Canvases---
 // Back Canvas
 var backCanvas = document.getElementById("BackCanvas");
 var Bcnvs = backCanvas.getContext("2d");
@@ -40,7 +35,6 @@ var Wcnvs = wordCanvas.getContext("2d");
 // Timer Canvas
 var timerCanvas = document.getElementById("TimerCanvas");
 var TIcnvs = timerCanvas.getContext("2d");
-
 
 // Create Drawing Canvas
 var drawingCanvas = document.getElementById("DrawingCanvas");
@@ -55,7 +49,6 @@ var toolsCanvas = document.getElementById("ToolsCanvas");
 var Tcnvs = toolsCanvas.getContext("2d");
 
 // ---Functions---
-
 // Start drawing when mouse is pressed
 function startDrawing(e) {
     isDrawing = true;
@@ -430,7 +423,7 @@ TIcnvs.fillRect(0, 0, 250, 75);
 Dcnvs.fillStyle = "white";
 Dcnvs.fillRect(0, 0, 700, 500);
 
-// When these images load, put them on the screen
+// Pencil
 pencil.onload = function () {
     if (eraser.complete) {
         updateToolHighlight(); // Only update when both images are loaded
@@ -439,6 +432,7 @@ pencil.onload = function () {
     }
 };
 
+// Eraser
 eraser.onload = function () {
     if (pencil.complete) {
         updateToolHighlight(); // Only update when both images are loaded
