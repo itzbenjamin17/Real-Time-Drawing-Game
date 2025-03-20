@@ -26,9 +26,7 @@ db = SQLAlchemy(app)
 
 
 def generate_unique_code(Length):
-    '''
-    Used to generate a unique code when a room is created.
-    '''
+    # Creates a random uppercase letter code of specified length
     while True:
         code = ""
         for _ in range(Length):
@@ -40,9 +38,8 @@ def generate_unique_code(Length):
 
 
 def sec_to_timer(secs):
-    '''
-    Used to calculate the timer parameters for drawing and guessing, given a duration in seconds.
-    '''
+    # Converts total seconds to minutes, tens of seconds, and seconds
+    # For example: 125 seconds becomes 2 minutes, 0 tens, and 5 seconds
     mins = secs // 60
     ten_seconds = (secs % 60) // 10
     seconds = secs % 10
@@ -51,20 +48,19 @@ def sec_to_timer(secs):
 
 
 def timer_to_sec(mins, ten_seconds, seconds):
-    '''
-    Used to convert the timer parameters back into seconds.
-    '''
+    # Converts minutes, tens of seconds, and seconds to total seconds
+    # Inverse of sec_to_timer function
     secs = (mins * 60) + (ten_seconds * 10) + seconds
 
     return secs
 
 
 def calc_score(timer, room, max_score=100, k=1):
-    '''
-    Used to calculate the score a player gets upon guessing the word correctly.
-    Requires the timer data from the frontend, as well as the room code.
-    The faster the guess was, the higher the score.
-    '''
+    # Calculate score based on time remaining
+    # More time remaining = higher score
+    # timer: dict with minutes, ten_seconds, seconds
+    # max_score: highest possible score (default 100)
+    # k: score scaling factor
     duration = room.round_duration
     time_ratio = timer / duration
 
@@ -79,6 +75,8 @@ def calc_score(timer, room, max_score=100, k=1):
 
 
 class Room(db.Model):
+    # Room model to store game room information
+    # Includes settings, players, and game state
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(6), unique=True, nullable=False)
     host = db.Column(db.String(50), nullable=False)
@@ -154,7 +152,7 @@ def index():
         pass
 
     if request.method == "POST":
-
+        # Handle form submission (join or create room)
         name = request.form.get("name")
         code = request.form.get("code")
         join = request.form.get("join", False)
@@ -163,25 +161,32 @@ def index():
         room_obj = Room.query.filter_by(code=code).first() if code else None
 
         if not name:
+            # Require a username
             return render_template("index.html", error="Please enter a name.", code=code, name=name)
 
         if create != False:
+            # Redirect to room creation page
             session["name"] = name
             return redirect(url_for("create_room"))
 
         if not room_obj:
+            # Error if trying to join non-existent room
             return render_template("index.html", error="Room does not exist.", code=code, name=name)
 
         if join != False:
-            if not code:  # and not code:
+            if not code:
+                # Require a room code for joining
                 return render_template("index.html", error="Please enter a room code.", code=code, name=name)
 
             if room_obj.num_of_players >= room_obj.max_players:
+                # Prevent joining full rooms
                 return render_template("index.html", error="Room is full", code=code, name=name)
 
             if name in room_obj.get_player_names():
+                # Prevent duplicate usernames in same room
                 return render_template("index.html", error="Username is already taken", code=code, name=name)
 
+        # Store session data and redirect to room
         session["room"] = code
         session["name"] = name
 
@@ -199,9 +204,11 @@ def room():
         return redirect(url_for("index"))
 
     if request.method == "POST":
+        # POST request handling for room creation
         room = request.form.get("code")
 
         if not room:
+            # Generate new room code if none provided
             room = generate_unique_code(4)
             new_room = Room(code=room, host=name)
             db.session.add(new_room)
@@ -216,6 +223,7 @@ def room():
     if not room_obj:
         return redirect(url_for("index"))
 
+    # Create player if they don't exist in this room yet
     player = Player.query.filter_by(name=name, room_id=room_obj.id).first()
     if not player:
         player = Player(name=name, room_id=room_obj.id)
@@ -238,6 +246,7 @@ def create_room():
     if not name:
         return redirect(url_for("index"))
 
+    # Generate a unique room code
     room = generate_unique_code(4)
     new_room = Room(code=room, host=name)
     db.session.add(new_room)
@@ -245,19 +254,21 @@ def create_room():
     session["room"] = room
 
     if request.method == "POST":
+        # Set room parameters from form data
         try:
             new_room.max_players = int(request.form.get("maxPlayers"))
         except:
-            new_room.max_players = 10
+            new_room.max_players = 10  # Default if invalid input
         try:
             new_room.num_of_rounds = int(request.form.get("rounds"))
         except:
-            new_room.num_of_rounds = 5
+            new_room.num_of_rounds = 5  # Default if invalid input
         try:
             new_room.round_duration = int(request.form.get("roundDuration"))
         except:
-            new_room.round_duration = 60
+            new_room.round_duration = 60  # Default if invalid input
 
+        # Convert total seconds to timer format (minutes, tens, seconds)
         times = sec_to_timer(new_room.round_duration)
         new_room.mins, new_room.ten_seconds, new_room.seconds = times
 
@@ -317,7 +328,6 @@ def game():
     except:
         scores = {username: 0 for username in room_obj.get_player_names()}
         return render_template("drawing.html", current_drawer=room_obj.current_drawer, mins=room_obj.mins, ten_secs=room_obj.ten_seconds, secs=room_obj.seconds, scores=scores)
-    # Sends drawer data and timer parameters to the frontend.
 
 
 @app.route("/guess", methods=["GET", "POST"])  # !-- INCOMPLETE --!
@@ -334,7 +344,6 @@ def guess():
     except:
         scores = {username: 0 for username in room_obj.get_player_names()}
         return render_template("Guessing.html", current_drawer=room_obj.current_drawer, mins=room_obj.mins, ten_secs=room_obj.ten_seconds, secs=room_obj.seconds, scores=scores)
-    # Sends drawer data and timer parameters to the frontend.
 
 
 @app.route("/leaderboard", methods=["GET", "POST"])  # !-- INCOMPLETE --!
@@ -512,7 +521,7 @@ def new_round():
     if not room_obj:
         return
 
-    # End game if current_round is greater than or equal to num_of_rounds.
+    # End game if current_round is greater than num_of_rounds.
     if room_obj.current_round > room_obj.num_of_rounds:
         for player in room_obj.players:
             socketio.emit('redirect', '/leaderboard', room=player.socket_id)
@@ -535,8 +544,6 @@ def new_round():
 
 @socketio.on("drawing_update")
 def drawing_update(data):
-    room = session.get("room")
-
     image_data = data.get("image", "")
     if not image_data.startswith("data:image/png;base64,"):
         print("Error: Invalid Base64 format!")

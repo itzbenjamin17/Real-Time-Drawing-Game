@@ -2,23 +2,24 @@
 let mouseX = 0;
 let mouseY = 0;
 
-
+// Current drawing color and tool state
 let colour = "black";
-let mode = "pencil";
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
+let mode = "pencil"; // Controls whether we're drawing or erasing
+let isDrawing = false; // Tracks if user is currently drawing
+let lastX = 0; // Last X position for line drawing
+let lastY = 0; // Last Y position for line drawing
 
 console.log(window.minutes, window.ten_secs, window.secs);
 
+// Timer values passed from backend
 let minutes = window.minutes;
 let tenSeconds = window.ten_secs;
 let seconds = window.secs;
 
-
-let theme = ""
+let theme = "" // Stores the current drawing theme/word
 
 // ---Images---
+// Load tool images for the toolbar
 const pencil = new Image();
 pencil.src = "static/pencil.png";
 
@@ -54,6 +55,7 @@ var Tcnvs = toolsCanvas.getContext("2d");
 // Start drawing when mouse is pressed
 function startDrawing(e) {
     isDrawing = true;
+    // Calculate position relative to canvas by subtracting canvas position from mouse coordinates
     let [canvasX, canvasY] = getCanvasCorners(drawingCanvas);
     lastX = e.clientX - canvasX;
     lastY = e.clientY - canvasY;
@@ -61,27 +63,31 @@ function startDrawing(e) {
 
 // Draw line to current position
 function draw(e) {
-    if (!isDrawing) return;
+    if (!isDrawing) return; // Exit if not in drawing state
     
+    // Get current mouse position relative to canvas
     let [canvasX, canvasY] = getCanvasCorners(drawingCanvas);
     let currentX = e.clientX - canvasX;
     let currentY = e.clientY - canvasY;
     
+    // Set line join style for smoother lines
     Dcnvs.lineJoin = 'round';
     Dcnvs.lineCap = 'round';
     
     if (mode === "pencil") {
+        // Drawing mode - use selected color
         Dcnvs.strokeStyle = colour;
         Dcnvs.lineWidth = 5;
         
+        // Draw line from previous position to current position
         Dcnvs.beginPath();
         Dcnvs.moveTo(lastX, lastY);
         Dcnvs.lineTo(currentX, currentY);
         Dcnvs.stroke();
     } else {
-        // Eraser mode
+        // Eraser mode - use white to "erase"
         Dcnvs.strokeStyle = "white";
-        Dcnvs.lineWidth = 15;
+        Dcnvs.lineWidth = 15; // Wider stroke for eraser
         
         Dcnvs.beginPath();
         Dcnvs.moveTo(lastX, lastY);
@@ -89,6 +95,7 @@ function draw(e) {
         Dcnvs.stroke();
     }
     
+    // Update last position for next draw call
     lastX = currentX;
     lastY = currentY;
 }
@@ -117,7 +124,9 @@ function drawCircle(circleX, colour) {
 // Check if click is inside the circle
 function isInsideCircle(mouseX, mouseY) {
     let [canvasX, canvasY] = getCanvasCorners(coloursCanvas);
-    // Run checkColour for each colour
+    // Check if mouse click coordinates are within each color circle
+    // Each color circle is positioned at a different X coordinate (40, 130, 220, etc.)
+    // but they all share the same Y coordinate (40)
     if (checkColour(mouseX - canvasX, mouseY - canvasY, 40)) {
         colour = "red";
     }
@@ -147,10 +156,12 @@ function isInsideCircle(mouseX, mouseY) {
     }
 }
 
-// Check if the click is in circle
+// Check if the click is inside a specific circle
+// mouseX, mouseY: coordinates relative to the canvas
+// circleX: the x-coordinate of the circle's center (y is always 40)
 function checkColour(mouseX, mouseY, circleX) {
     const distance = Math.sqrt((mouseX - circleX) ** 2 + (mouseY - 40) ** 2); // Calculate distance to center of circle
-    return (distance <= 30); // True if mouse is in circle
+    return (distance <= 30); // True if mouse is in circle (radius is 30)
 }
 
 // Add text to a canvas
@@ -167,7 +178,7 @@ function back() {
     window.location.href = '/';
 }
 
-// Highlight the selected tool
+// Highlight the selected tool (pencil or eraser)
 function updateToolHighlight() {
     // Clear the tools canvas
     Tcnvs.clearRect(0, 0, 150, 75);
@@ -180,11 +191,11 @@ function updateToolHighlight() {
     Tcnvs.lineWidth = 4;
     
     if (mode === "pencil") {
-        // Highlight pencil
+        // Highlight pencil with pink border
         Tcnvs.strokeStyle = "#ff6bcb";
         Tcnvs.strokeRect(2, 2, 71, 71);
     } else {
-        // Highlight eraser
+        // Highlight eraser with pink border
         Tcnvs.strokeStyle = "#ff6bcb";
         Tcnvs.strokeRect(77, 2, 71, 71);
     }
@@ -204,34 +215,32 @@ function toolsClick(mouseX) {
     updateToolHighlight();
 }
 
-// Update Timer
+// Update Timer - counts down from initial time and handles time formatting
 function runTimer() {
-    // Clear Tcnvs
+    // Clear timer canvas and redraw background
     TIcnvs.clearRect(0, 0, 250, 75);
-
-    // Background
     TIcnvs.fillStyle = "#ffd296";
     TIcnvs.fillRect(0, 0, 250, 75);
 
-    // update timer
+    // Timer logic - checks each component (seconds, ten seconds, minutes)
+    // and updates them appropriately
     if (seconds == "0") {
         if (tenSeconds == "0") {
             if (minutes == "0") {
+                // Time's up - stop timer and handle end of round
                 addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
-                // Need to add logic to end the round and move on to the next
                 
-                // Store data (username, score, current round, etc.)
-
-                // Redirect to new round after 5 seconds
+                // Add a delay before starting a new round
                 setTimeout(() => {
                     socketio.emit("new_round");
                 }, 5000);
 
-                // Display the word to the player
+                // Reveal the word to all players
                 socketio.emit("message", {data: "Time's up! The word was: " + theme});
             }
             else {
+                // Decrement minutes, reset seconds to 59
                 seconds = "9";
                 tenSeconds = "5";
                 minutes = parseInt(minutes) - 1;
@@ -241,6 +250,7 @@ function runTimer() {
             }
         }
         else {
+            // Decrement ten seconds, reset seconds to 9
             seconds = "9";
             tenSeconds = parseInt(tenSeconds) - 1;
             tenSeconds = tenSeconds.toString();
@@ -249,6 +259,7 @@ function runTimer() {
         }
     }
     else {
+        // Just decrement seconds
         seconds = parseInt(seconds) - 1;
         seconds = seconds.toString();
 
@@ -273,6 +284,7 @@ function renderLeaderboard(playersData) {
     // Sort players by score (highest first)
     const sortedPlayers = Object.entries(playersData).sort((a, b) => b[1] - a[1]);
 
+    // Create table rows for each player
     sortedPlayers.forEach(([name, score]) => {
         const row = document.createElement("tr");
         row.innerHTML = `<td>${name}</td><td>${score}</td>`;
@@ -340,23 +352,30 @@ socketio.on("score_updated", (data) => {
 
 // Choosing Words
 socketio.on('chooseWords', (words) => {
+    // Display word selection modal for the drawer
     const wordList = document.getElementById('word-list');
     wordList.innerHTML = '';
     words.forEach((word) => {
         const listItem = document.createElement('li');
         listItem.textContent = word;
         listItem.onclick = function() {
+            // When a word is selected, inform server and start round
             socketio.emit('wordSelected', word);
+            // Send a message with hint about word length
             socketio.emit("message", {data: "The theme has been chosen. The theme has " +  word.length + " characters."});
+            // Hide the word selection modal
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('word-selection-modal').style.display = 'none';
+            // Start the timer
             timer = setInterval(runTimer, 1000);
+            // Display the word for the drawer
             addText(Wcnvs, "50", "center", word, 350, 55);
             theme = word
         };
         wordList.appendChild(listItem);
     });
 
+    // Show word selection modal
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('word-selection-modal').style.display = 'block';
 });
@@ -386,13 +405,15 @@ const createMessage = (name, msg) => {
 // Sending canvas data
 const sendDrawing = () => {
     const canvas = document.getElementById("DrawingCanvas");
+    // Convert canvas to data URL (base64 encoded image)
     const dataURL = canvas.toDataURL();
 
-    //console.log("Sending drawing update:", dataURL.slice(0, 50) + "...");
+    // Send the image data to server for distribution to other players
     socketio.emit("drawing_update", {"image": dataURL});
 };
 
-// Sends an image of the canvas to all players every half-second.
+// Send canvas updates at regular intervals (10ms)
+// This creates a real-time drawing experience for viewers
 setInterval(sendDrawing, 10);
 
 // ---Event listeners---

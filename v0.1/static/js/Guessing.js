@@ -1,10 +1,11 @@
 // ---Variables---
 let mouseX = 0;
 let mouseY = 0;
-let guessed = false;
+let guessed = false; // Tracks if the current player has guessed correctly
 
 console.log(window.minutes, window.ten_secs, window.secs);
 
+// Timer values passed from backend
 let minutes = window.minutes;
 let tenSeconds = window.ten_secs;
 let seconds = window.secs;
@@ -33,24 +34,29 @@ function getCanvasCorners(canvas) {
     return [rect.left, rect.top]
 }
 
-// Display word at Word Canvas
+// Display word at Word Canvas - shows blanks or the full word depending on if guessed
 function displayWord(word, guessed) {
-    if (guessed) { // If user has guessed the word
-        addText(Wcnvs, "50", "center", word, 350, 55)
-    }
-    else { // User has not guessed the word
-        // Get underscores for each letter in word
-        length = word.length;
-        let displayedWord = "";
-        for (let i = 0; i < length; i++) {
-            if (word[i] != " ") displayedWord += "_ ";
-            else displayedWord += "  ";
+    // Clear previous content
+    Wcnvs.clearRect(0, 0, 700, 75);
+    
+    // Redraw background
+    Wcnvs.fillStyle = "#ffd296";
+    Wcnvs.fillRect(0, 0, 700, 75);
+    
+    if (guessed) {
+        // If the player guessed correctly, show the complete word
+        addText(Wcnvs, "40", "center", word, 350, 50);
+    } else {
+        // Otherwise show blanks representing each letter
+        let blanks = "";
+        for (let i = 0; i < word.length; i++) {
+            if (word[i] === " ") {
+                blanks += "  ";  // Preserve spaces
+            } else {
+                blanks += "_ ";  // Use underscore for letters
+            }
         }
-        displayedWord = displayedWord.slice(0, -1);
-        
-        let textSize = "50";
-        if (length > 15) textSize = "40";
-        addText(Wcnvs, textSize, "center", displayedWord, 350, 55);
+        addText(Wcnvs, "40", "center", blanks, 350, 50);
     }
 }
 
@@ -67,37 +73,35 @@ function back() {
     window.location.href = '/';
 }
 
-// Update Timer
+// Update Timer - counts down and formats display
 function runTimer() {
-    // Clear Tcnvs
+    // Clear timer canvas and redraw background
     Tcnvs.clearRect(0, 0, 250, 75);
-
-    // Background
     Tcnvs.fillStyle = "#ffd296";
     Tcnvs.fillRect(0, 0, 250, 75);
 
-    // update timer
+    // Timer logic - similar structure to drawing.js
     if (seconds == "0") {
         if (tenSeconds == "0") {
             if (minutes == "0") {
+                // Time's up
                 addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
-                // Need to add logic to end the round and move on to the next
+                // Round ends when time runs out
                 
-                // Store data (username, score, current round, etc.)
             }
-
             else {
+                // Decrement minutes, reset seconds
                 seconds = "9"
                 tenSeconds = "5"
                 minutes = parseInt(minutes) - 1
                 minutes = minutes.toString()
-    
+
                 addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
             }
         }
-
         else {
+            // Decrement ten seconds place, reset seconds
             seconds = "9"
             tenSeconds = parseInt(tenSeconds) - 1
             tenSeconds = tenSeconds.toString()
@@ -105,8 +109,8 @@ function runTimer() {
             addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
         }
     }
-
     else {
+        // Just decrement seconds
         seconds = parseInt(seconds) - 1
         seconds = seconds.toString()
 
@@ -119,22 +123,23 @@ function stopTimer() {
     clearInterval(timer);
 }
 
-// Player has guesssed correctly
+// Player has guessed correctly
 function correctGuess() {
     guessed = true
+    // Clear and reset word display
     Wcnvs.clearRect(0, 0, 700, 75)
     
     // Background for Word Canvas
     Wcnvs.fillStyle = "#ffd296";
     Wcnvs.fillRect(0, 0, 700, 75)
     
-    // Display the word at the top
+    // Show the full word now that player has guessed it
     displayWord(word, true);
 
-    // Send message that this player has guessed correctly
+    // Inform other players this user has guessed correctly
     socketio.emit("message", {data: "I've guessed correctly!"});
 
-    // Update score to leaderboard
+    // Calculate score based on remaining time
     socketio.emit("calculate_score", {
         "minutes": minutes,
         "ten_seconds": tenSeconds,
@@ -144,7 +149,6 @@ function correctGuess() {
 
 // Need logic that checks if all guessing players have guessed correctly
 function renderLeaderboard(playersData) {
-    console.log("this is playersData", playersData)
     if (!playersData) {
         console.log("No player data");
         return;
@@ -156,6 +160,7 @@ function renderLeaderboard(playersData) {
     // Sort players by score (highest first)
     const sortedPlayers = Object.entries(playersData).sort((a, b) => b[1] - a[1]);
 
+    // Create table rows for each player
     sortedPlayers.forEach(([name, score]) => {
         const row = document.createElement("tr");
         row.innerHTML = `<td>${name}</td><td>${score}</td>`;
@@ -170,6 +175,7 @@ var socketio = io();
 
 const messages = document.getElementById("messages");
 
+// Waiting for drawer to select a word
 window.onload = function() {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('waiting-modal').style.display = 'block';
@@ -183,11 +189,15 @@ socketio.on("connect", () => {
     console.log("Socket Connected!");
 });
 
+// Word has been selected by the drawer
 socketio.on('wordSelected', (wordToGuess) => {
+    // Hide waiting modal
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('waiting-modal').style.display = 'none';
+    // Store the word and display blanks
     word = wordToGuess;
     displayWord(word, false);
+    // Start the timer
     timer = setInterval(runTimer, 1000);
 });
 
@@ -226,20 +236,9 @@ socketio.on("all_guessed", () => {
     stopTimer();
 });
 
-
 // Receiving canvas data
 socketio.on("display_drawing", (data) => {
-    //console.log("Received drawing update:", data.image.slice(0, 50) + "...");
-
-    //const imageElement = document.getElementById("DrawingImage");
-    //console.log("DrawingImage element exists?", document.getElementById("DrawingImage"));
-
-    //if (!imageElement) {
-    //  console.error("Error: Image element not found!");
-    //  return;
-    //}
-
-    //console.log("Updating image src...");
+    // Update the drawing image with the latest canvas data
     drawingCanvas.src = data.image;
     
     drawingCanvas.onload = () => {
@@ -261,19 +260,20 @@ socketio.on("score_updated", (data) => {
     //updateLeaderboard(individualUsername, data.score)
 });
 
-
-
 // Chat
 const sendMessage = () => {
-    const message = document.getElementById("message"); // fetch message
-    if (message.value == "") return; // if empty do nothing
+    const message = document.getElementById("message"); // Get message input
+    if (message.value == "") return; // Skip empty messages
+    
     if (!guessed) {
+        // Check if message matches the word (case-sensitive)
         if (message.value == word) correctGuess();
-        else socketio.emit("message", {data: message.value}); // send to other players
+        else socketio.emit("message", {data: message.value}); // Otherwise send as chat
     }
-    message.value = ""; // empties box
+    message.value = ""; // Clear input field
 };
 
+// Add a message to the chat display
 const createMessage = (name, msg) => {
     const content = `
     <div class="text">
@@ -283,7 +283,7 @@ const createMessage = (name, msg) => {
     </div>
     `;
     messages.innerHTML += content;
-    messages.scrollTop = messages.scrollHeight;
+    messages.scrollTop = messages.scrollHeight; // Auto-scroll to bottom
 };
 
 // ---Event Listeners---
