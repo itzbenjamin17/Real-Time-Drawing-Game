@@ -46,8 +46,172 @@
         
         <div class="dev-corner">
             <span class="dev-label">dev only</span>
-            <button onclick="window.location.href='{{ url_for('admin_reports') }}'" class="dev-button">View Reports</button>
+            <button id="showLoginBtn" class="dev-button">View Reports</button>
+        </div>
+        
+        <!-- Login Modal -->
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Admin Login</h2>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="loginBtn">Login</button>
+                        <button type="button" class="cancel-btn">Cancel</button>
+                    </div>
+                    <div id="loginError" class="error-message"></div>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <script>
+        // Admin credentials
+        const ADMIN_USERNAME = "admin";
+        const ADMIN_PASSWORD = "scribble123";
+        
+        // Login modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginModal = document.getElementById('loginModal');
+            const showLoginBtn = document.getElementById('showLoginBtn');
+            const closeModal = document.querySelector('.close-modal');
+            const cancelBtn = document.querySelector('.cancel-btn');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginError = document.getElementById('loginError');
+            
+            // Show login modal
+            showLoginBtn.addEventListener('click', function() {
+                loginModal.style.display = 'flex';
+            });
+            
+            // Close modal functions
+            function closeLoginModal() {
+                loginModal.style.display = 'none';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                loginError.textContent = '';
+            }
+            
+            closeModal.addEventListener('click', closeLoginModal);
+            cancelBtn.addEventListener('click', closeLoginModal);
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === loginModal) {
+                    closeLoginModal();
+                }
+            });
+            
+            // Handle login
+            loginBtn.addEventListener('click', function() {
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                    // Successful login
+                    window.location.href = "{{ url_for('admin_reports') }}";
+                } else {
+                    // Failed login
+                    loginError.textContent = "Invalid username or password";
+                }
+            });
+        });
+    </script>
+    
+    <style>
+        /* Login Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: rgba(30, 30, 50, 0.95);
+            border: 2px solid #4c8dff;
+            border-radius: 8px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(76, 141, 255, 0.6);
+            position: relative;
+            color: #fff;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #ff6b6b;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-group input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #4c8dff;
+            background-color: rgba(20, 20, 40, 0.8);
+            color: white;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .form-actions button {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #loginBtn {
+            background-color: #4c8dff;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background-color: #444;
+            color: white;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            font-size: 14px;
+            text-align: center;
+            min-height: 20px;
+        }
+    </style>
 </body>
 </html>
