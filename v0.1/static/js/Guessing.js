@@ -85,11 +85,6 @@ function runTimer() {
                 // Need to add logic to end the round and move on to the next
                 
                 // Store data (username, score, current round, etc.)
-
-                // Redirect to new round after 5 seconds
-                setTimeout(() => {
-                    socketio.emit("new_round");
-                }, 5000);
             }
 
             else {
@@ -227,9 +222,6 @@ socketio.on("scores", (scores) => {
 // All players guessed correctly
 socketio.on("all_guessed", () => {
     stopTimer();
-    setTimeout(() => {
-        socketio.emit("new_round");
-    }, 5000);
 });
 
 

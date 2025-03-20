@@ -487,6 +487,7 @@ def message(data):
 @socketio.on("start")
 def startGame():
     room = session.get('room')
+    rooms[room]['playerOrder'] = rooms[room]['players'].copy()
     for sid, player in rooms[room]['sid_map'].items():
         if player == rooms[room]['players'][0]:
             socketio.emit('redirect', '/game', room=sid)
@@ -568,19 +569,24 @@ def connect(auth):
 @socketio.on("new_round")
 def new_round():
     room = session.get("room")
-    players = rooms[room]["players"]
+    players = rooms[room]["playerOrder"]
     current_drawer = rooms[room]["current_drawer"]
 
     next_index = (players.index(current_drawer) + 1) % len(players)
     next_drawer = players[next_index]
+    drawerInRoom = False
 
-    for sid, player in rooms[room]['sid_map'].items():
-        if rooms[room]["current_round"] == int(rooms[room]["rounds"]) * len(rooms[room]["players"]):
-            socketio.emit('redirect', '/leaderboard', room=sid)
-        elif player == next_drawer:
-            socketio.emit('redirect', '/game', room=sid)
-        else:
-            socketio.emit('redirect', '/guess', room=sid)
+    while not drawerInRoom:
+        for sid, player in rooms[room]['sid_map'].items():
+            if rooms[room]["current_round"] == int(rooms[room]["rounds"]) * len(rooms[room]["players"]):
+                socketio.emit('redirect', '/leaderboard', room=sid)
+            elif player == next_drawer:
+                socketio.emit('redirect', '/game', room=sid)
+                drawerInRoom = True
+            else:
+                socketio.emit('redirect', '/guess', room=sid)
+        next_index = (next_index + 1) % len(players)
+        next_drawer = players[next_index]
 
 
 @socketio.on("drawing_update")
