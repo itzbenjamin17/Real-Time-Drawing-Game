@@ -393,7 +393,7 @@ const sendDrawing = () => {
 };
 
 // Sends an image of the canvas to all players every half-second.
-setInterval(sendDrawing, 500);
+setInterval(sendDrawing, 10);
 
 // ---Event listeners---
 coloursCanvas.addEventListener("click", function(e) { 

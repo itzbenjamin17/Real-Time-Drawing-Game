@@ -71,9 +71,12 @@ def calc_score(timer, room, max_score=100, k=1):
     duration = rooms[room]["roundDuration"]
     time_ratio = timer / duration
 
-    additional_score = max_score * math.exp(-k * (1 - time_ratio))
+    drawer = rooms[room]["current_drawer"]
 
-    return round(additional_score)
+    additional_score = max_score * math.exp(-k * (1 - time_ratio))
+    drawer_score = round((additional_score * 0.5))
+
+    return round(additional_score), drawer_score
 
 # ----------------- Database Models ----------------- #
 
@@ -643,6 +646,7 @@ def handle_score_calculation(data):
     room = session.get("room")
     name = session.get("name")
     rooms[room]["correct"] += 1 # Increases the counter.
+    current_drawer = rooms[room]["current_drawer"]
 
     # Get timer values from client
     minutes = int(data.get("minutes", 0))
@@ -653,7 +657,7 @@ def handle_score_calculation(data):
     timer_seconds = timer_to_sec(minutes, ten_seconds, seconds)
 
     # Calculate score using existing function
-    score = calc_score(timer_seconds, room)
+    score, drawer_score = calc_score(timer_seconds, room)
 
     # Initialize scores dictionary if needed
     if "scores" not in rooms[room]:
@@ -665,6 +669,13 @@ def handle_score_calculation(data):
         rooms[room]["scores"][name] += score
     else:
         rooms[room]["scores"][name] = score
+
+    if current_drawer in rooms[room]["scores"]:
+        rooms[room]["scores"][current_drawer] += drawer_score
+    else:
+        rooms[room]["scores"][current_drawer] = drawer_score
+
+
 
     print(
         f"Player {name} scored {score} points (total: {rooms[room]['scores'][name]})")
