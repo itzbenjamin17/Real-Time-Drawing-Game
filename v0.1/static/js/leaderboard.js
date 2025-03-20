@@ -1,8 +1,6 @@
-function renderLeaderboard() {
-    const playersData = JSON.parse(localStorage.getItem('playersData'));
-
+function renderLeaderboard(playersData) {
     if (!playersData) {
-        console.error("No player data found!");
+        console.log("No player data");
         return;
     }
     
@@ -22,4 +20,4 @@ function renderLeaderboard() {
 
 
 // Call renderLeaderboard when the page is loaded
-document.addEventListener("DOMContentLoaded", renderLeaderboard);
+document.addEventListener("DOMContentLoaded", renderLeaderboard(window.scores));
