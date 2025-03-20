@@ -521,8 +521,9 @@ def new_round():
     if not room_obj:
         return
 
-    # End game if current_round is greater than num_of_rounds.
-    if room_obj.current_round > room_obj.num_of_rounds:
+    num_of_players = len(room_obj.players)
+    # End game if current_round is greater than num_of_rounds * num_of_players so each player can play even if num_of_rounds < num_of_players.
+    if room_obj.current_round > room_obj.num_of_rounds * num_of_players:
         for player in room_obj.players:
             socketio.emit('redirect', '/leaderboard', room=player.socket_id)
         return
