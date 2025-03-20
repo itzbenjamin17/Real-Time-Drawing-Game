@@ -7,14 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/leaderboard.css') }}">
 </head>
 <body>
-
+    <div class="background-animation"></div>
+    <h1 id="game-over">Game Over</h1>
     <div class="leaderboard-container">
         <h2 class="title">Leaderboard</h2>
         <table class="leaderboard-table">
             <thead>
                 <tr>
-                    <th>Player</th>
-                    <th>Score</th>
+                    <th id="player">Player</th>
+                    <th id="score">Score</th>
                 </tr>
             </thead>
             <tbody id="players-list">
@@ -23,7 +24,7 @@
     </div>
 
     <form action="{{ url_for('index') }}">
-        <button type="submit" name="return" class="return-btn">Return to Home Page</button>
+        <button type="submit" name="return" class="return-btn">Home</button>
     </form>
 </body>
 </html>

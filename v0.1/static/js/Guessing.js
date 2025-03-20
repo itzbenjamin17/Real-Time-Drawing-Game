@@ -266,9 +266,8 @@ const sendMessage = () => {
     if (message.value == "") return; // Skip empty messages
     
     if (!guessed) {
-        // Check if message matches the word (case-sensitive)
-        if (message.value == word) correctGuess();
-        else socketio.emit("message", {data: message.value}); // Otherwise send as chat
+        if (message.value.toLowerCase() == word) correctGuess();
+        else socketio.emit("message", {data: message.value}); // send to other players
     }
     message.value = ""; // Clear input field
 };

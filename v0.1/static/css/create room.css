@@ -9,11 +9,12 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: black;
     overflow: hidden;
     background: linear-gradient(-45deg, #6a11cb, #ff6bcb, #ffcc70, #6a11cb);
     background-size: 400% 400%;
     animation: gradientMove 8s ease infinite;
+    font-family: 'Patrick Hand', cursive;
 }
 
 /* Background Animation */
@@ -23,9 +24,21 @@ body {
     100% { background-position: 0% 50%; }
 }
 
+/* Floating magical particles */
+.background-animation::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJvOW1sMjNuNGFwazk4cnBxaHF0dnhsMXVzbDY3aWdlcndxdmw5NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/W4p2QJMltrvDqp1c0B/giphy.gif');
+    opacity: 0.1;
+    pointer-events: none;
+}
+
 h1 {
     text-align: center;
-    color: white;
 }
 
 /* Message Box */
@@ -129,6 +142,7 @@ input[type="text"] {
 
 /* Buttons */
 button {
+    margin: 5px;
     padding: 8px 12px;
     border: none;
     background-color: #4caf50;

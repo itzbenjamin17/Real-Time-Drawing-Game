@@ -230,11 +230,11 @@ function runTimer() {
                 // Time's up - stop timer and handle end of round
                 addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
                 stopTimer();
-                
-                // Add a delay before starting a new round
+
+                // Redirect to new round after 5 seconds
                 setTimeout(() => {
                     socketio.emit("new_round");
-                }, 5000);
+                }, 3000);
 
                 // Reveal the word to all players
                 socketio.emit("message", {data: "Time's up! The word was: " + theme});
@@ -385,7 +385,7 @@ socketio.on("all_guessed", () => {
     stopTimer();
     setTimeout(() => {
         socketio.emit("new_round");
-    }, 5000);
+    }, 3000);
     socketio.emit("message", {data: "Round over, everyone guessed correctly! The word was: " + theme});
 });
 
