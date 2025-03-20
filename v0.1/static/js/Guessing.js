@@ -144,6 +144,7 @@ function correctGuess() {
 
 // Need logic that checks if all guessing players have guessed correctly
 function renderLeaderboard(playersData) {
+    console.log("this is playersData", playersData)
     if (!playersData) {
         console.log("No player data");
         return;
@@ -161,6 +162,7 @@ function renderLeaderboard(playersData) {
         playersList.appendChild(row);
     });
 }
+
 
 // ---Socketio---
 
@@ -202,6 +204,7 @@ socketio.on('redirect', (url) => {
 // Used to receive the usernames of the whole lobby.
 socketio.on("username", (playerName) => {
     console.log("New Player:", playerName);
+    socketio.emit("new_player_joined")
 });
 
 // Used to receive the client's individual username from the backend.
@@ -216,7 +219,6 @@ socketio.on("scores", (scores) => {
     console.log("Received Scores:", scores);
     playerScores = scores;
     console.log("Player Scores:", playerScores);
-    renderLeaderboard(scores)
 });
 
 // All players guessed correctly
@@ -249,13 +251,17 @@ socketio.on("display_drawing", (data) => {
 });
 
 socketio.on("score_updated", (data) => {
-    console.log(`Scored ${data.score} points! New total: ${data.total}`);
-    
+    usernames = data.username;
+    scores = data.score;
+    console.log("score updated has ran")
     // NO idea who the current player is
     score1 = data.total;
-    // renderLeaderboard(data)
     // Update the leaderboard display
+    renderLeaderboard(scores);
+    //updateLeaderboard(individualUsername, data.score)
 });
+
+
 
 // Chat
 const sendMessage = () => {

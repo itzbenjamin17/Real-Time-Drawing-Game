@@ -2,6 +2,7 @@
 let mouseX = 0;
 let mouseY = 0;
 
+
 let colour = "black";
 let mode = "pencil";
 let isDrawing = false;
@@ -13,6 +14,7 @@ console.log(window.minutes, window.ten_secs, window.secs);
 let minutes = window.minutes;
 let tenSeconds = window.ten_secs;
 let seconds = window.secs;
+
 
 let theme = ""
 
@@ -309,6 +311,7 @@ socketio.on("message", (data) => {
 // Used to receive the usernames of the whole lobby.
   socketio.on("username", (playerName) => {
     console.log("New Player:", playerName);
+    socketio.emit("new_player_joined")
 });
 
 // Used to receive the client's individual username from the backend.
@@ -323,7 +326,16 @@ socketio.on("scores", (scores) => {
     console.log("Received Scores:", scores);
     playerScores = scores;
     console.log("Player Scores:", playerScores);
-    renderLeaderboard(scores)
+});
+
+socketio.on("score_updated", (data) => {
+    usernames = data.username;
+    scores = data.score;
+    console.log("score updated has ran")
+    // NO idea who the current player is
+    score1 = data.total;
+    // Update the leaderboard display
+    renderLeaderboard(scores);
 });
 
 // Choosing Words

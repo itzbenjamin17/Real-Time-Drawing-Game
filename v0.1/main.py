@@ -422,7 +422,11 @@ def game():
 
 
 
-    return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"])
+    try:
+        return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"], scores = rooms[room]["scores"])
+    except:
+        scores = {username:0 for username in rooms[room]["players"] }
+        return render_template("drawing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"], scores = scores)
     # Sends drawer data and timer parameters to the frontend. 
 
 
@@ -430,7 +434,11 @@ def game():
 def guess():
     room = session.get("room")
     time.sleep(0.5) # Adds a delay to prevent clients joining before the host.
-    return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"])
+    try:
+        return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"], scores = rooms[room]["scores"])
+    except:
+        scores = {username:0 for username in rooms[room]["players"] }
+        return render_template("Guessing.html", current_drawer=rooms[room]["current_drawer"], mins=rooms[room]["mins"], ten_secs=rooms[room]["ten_seconds"], secs=rooms[room]["seconds"], scores = scores)
     # Sends drawer data and timer parameters to the frontend. 
 
 
@@ -663,14 +671,25 @@ def handle_score_calculation(data):
 
     # Send back the updated score
     socketio.emit("score_updated", {
-        "player": name,
-        "score": score,
-        "total": rooms[room]["scores"][name]
-    }, room=request.sid)
+        "username": rooms[room]["players"],
+        "score": rooms[room]["scores"]
+    })
 
     if rooms[room]["correct"] == (len(rooms[room]["players"]) - 1):
         socketio.emit("all_guessed")
 
+@socketio.on("new_player_joined")
+def new_player_joined():
+    room = session.get("room")
+    print("iam rujning")
+    if 'scores' not in rooms[room]:
+        rooms[room]["scores"] = {username: 0 for username in rooms[room]["playerOrder"]}
+    print(rooms[room]["playerOrder"])
+    print(rooms[room]["scores"])
+    socketio.emit("score_updated", {
+        "username": rooms[room]["playerOrder"],
+        "score": rooms[room]["scores"]
+})
 
 if __name__ == "__main__":
     # Create database tables if they don't exist

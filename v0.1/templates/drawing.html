@@ -102,6 +102,9 @@
 
   window.secs = {{ secs | tojson }};
   console.log("Seconds:", window.secs);
+
+  window.scores = {{ scores | tojson }};
+  console.log("scores:", window.scores);
 </script>
 
 <script src="{{ url_for('static', filename='js/drawing.js') }}"></script>
