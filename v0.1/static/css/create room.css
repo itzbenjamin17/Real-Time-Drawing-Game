@@ -9,11 +9,12 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: black;
     overflow: hidden;
     background: linear-gradient(-45deg, #6a11cb, #ff6bcb, #ffcc70, #6a11cb);
     background-size: 400% 400%;
     animation: gradientMove 8s ease infinite;
+    font-family: 'Patrick Hand', cursive;
 }
 
 /* Background Animation */
@@ -38,7 +39,6 @@ body {
 
 h1 {
     text-align: center;
-    color: white;
 }
 
 /* Message Box */
@@ -142,6 +142,7 @@ input[type="text"] {
 
 /* Buttons */
 button {
+    margin: 5px;
     padding: 8px 12px;
     border: none;
     background-color: #4caf50;
