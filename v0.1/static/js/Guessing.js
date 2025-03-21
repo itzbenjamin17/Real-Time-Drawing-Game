@@ -270,7 +270,7 @@ const sendMessage = () => {
     if (message.value == "") return; // Skip empty messages
     
     if (!guessed) {
-        if (message.value.toLowerCase() == word) correctGuess();
+        if (message.value.toLowerCase().trim() == word) correctGuess();
         else socketio.emit("message", {data: message.value}); // send to other players
     }
     message.value = ""; // Clear input field
