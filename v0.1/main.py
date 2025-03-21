@@ -309,8 +309,10 @@ def game():
     room = session.get("room")
 
     room_obj = Room.query.filter_by(code=room).first()
+    print(room_obj)
     if not room_obj:
-        return redirect(url_for("index"))
+        print("room does not exist")
+        return render_template("index.html", error="You cannot start a game on your own.")
 
     # Sets the current drawer to the player rendering '/game'.
     room_obj.current_drawer = name
