@@ -107,12 +107,13 @@ body {
   background: white;
   border-radius: 5px;
   width: 250px;
+  border: 10px solid black;
+
 }
 
 .text {
   padding: 8px;
   margin: 5px 0;
-  border-radius: 5px;
   display: flex;
   flex-direction: column;
 }
@@ -126,6 +127,7 @@ body {
   padding: 6px 10px;
   border-radius: 5px;
   display: inline-block;
+  border: 1px solid black;
   max-width: 100%;
 }
 
