@@ -139,3 +139,7 @@ body {
 .modal h2 {
   margin-top: 0;
 }
+
+#times-up-modal , #all-guessed-modal{
+  text-align: center;
+}

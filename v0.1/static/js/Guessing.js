@@ -10,6 +10,8 @@ let minutes = window.minutes;
 let tenSeconds = window.ten_secs;
 let seconds = window.secs;
 
+let theme = ""
+
 // ---Define the Canvases---
 // Back Canvas
 var backCanvas = document.getElementById("BackCanvas");
@@ -89,6 +91,14 @@ function runTimer() {
                 stopTimer();
                 // Round ends when time runs out
                 
+                // Reveal the word to client
+                const themeReveal = document.getElementById('times-up');
+                themeReveal.innerHTML = '';
+                themeReveal.textContent = "The theme was: " + theme;
+
+                // Show the times up modal
+                document.getElementById('overlay').style.display = 'block';
+                document.getElementById('times-up-modal').style.display = 'block';
             }
             else {
                 // Decrement minutes, reset seconds
@@ -177,8 +187,14 @@ const messages = document.getElementById("messages");
 
 // Waiting for drawer to select a word
 window.onload = function() {
+
+    // Show waiting model
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('waiting-modal').style.display = 'block';
+
+    // Hide theme reveal modals
+    document.getElementById('times-up-modal').style.display = 'none';
+    document.getElementById('all-guessed-modal').style.display = 'none';
 }
 
 //socketio.onAny((event, ...args) => {
@@ -194,9 +210,12 @@ socketio.on('wordSelected', (wordToGuess) => {
     // Hide waiting modal
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('waiting-modal').style.display = 'none';
+
     // Store the word and display blanks
     word = wordToGuess;
+    theme = word;
     displayWord(word, false);
+    
     // Start the timer
     timer = setInterval(runTimer, 1000);
 });
@@ -234,6 +253,16 @@ socketio.on("scores", (scores) => {
 // All players guessed correctly
 socketio.on("all_guessed", () => {
     stopTimer();
+
+    console.log("hahaha")
+    // Reveal the word to client
+    const themeReveal = document.getElementById('all-guessed');
+    themeReveal.innerHTML = '';
+    themeReveal.textContent = "The theme was: " + theme;
+
+    // Show the times up modal
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('all-guessed-modal').style.display = 'block';
 });
 
 // Receiving canvas data

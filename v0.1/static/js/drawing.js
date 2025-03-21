@@ -172,9 +172,9 @@ function addText(cnvs, size, align, text, textX, textY) {
     cnvs.fillText(text, textX, textY);
 }
 
-// Runs when the Back Button is pressed (incomplete)
+// Runs when the Back Button is pressed
 function back() {
-    console.log("Back Button"); // Send to back end that user has left the room
+    console.log("Back Button");
     window.location.href = '/';
 }
 
@@ -236,9 +236,16 @@ function runTimer() {
                     socketio.emit("new_round");
                 }, 3000);
 
-                // Reveal the word to all players
-                socketio.emit("message", {data: "Time's up! The word was: " + theme});
+                // Reveal the word to client
+                const themeReveal = document.getElementById('times-up');
+                themeReveal.innerHTML = '';
+                themeReveal.textContent = "The theme was: " + theme;
+
+                // Show the times up modal
+                document.getElementById('overlay').style.display = 'block';
+                document.getElementById('times-up-modal').style.display = 'block';
             }
+
             else {
                 // Decrement minutes, reset seconds to 59
                 seconds = "9";
@@ -298,6 +305,11 @@ var socketio = io();
 
 window.onload = function() {
     socketio.emit('ready')
+
+    // Hide theme reveal modals
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('times-up-modal').style.display = 'none';
+    document.getElementById('all-guessed-modal').style.display = 'none';
 }
 
 //socketio.onAny((event, ...args) => {
@@ -358,6 +370,8 @@ socketio.on('chooseWords', (words) => {
     words.forEach((word) => {
         const listItem = document.createElement('li');
         listItem.textContent = word;
+
+        // Run this function when a word is chosen
         listItem.onclick = function() {
             // When a word is selected, inform server and start round
             socketio.emit('wordSelected', word);
@@ -386,7 +400,15 @@ socketio.on("all_guessed", () => {
     setTimeout(() => {
         socketio.emit("new_round");
     }, 3000);
-    socketio.emit("message", {data: "Round over, everyone guessed correctly! The word was: " + theme});
+
+    // Reveal the word to client
+    const themeReveal = document.getElementById('all-guessed');
+    themeReveal.innerHTML = '';
+    themeReveal.textContent = "The theme was: " + theme;
+
+    // Show the times up modal
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('all-guessed-modal').style.display = 'block';
 });
 
 // Display Message
