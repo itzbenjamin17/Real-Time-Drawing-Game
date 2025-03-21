@@ -8,8 +8,8 @@
 </head>
 <body>
     <div class="background-animation"></div>
-    <h1 id="game-over">Game Over</h1>
     <div class="leaderboard-container">
+        <h2 class="title">Game Over</h2>
         <h2 class="title">Leaderboard</h2>
         <table class="leaderboard-table">
             <thead>
@@ -21,11 +21,12 @@
             <tbody id="players-list">
             </tbody>
         </table>
+        <form action="{{ url_for('index') }}">
+            <button type="submit" name="return" class="return-btn">Home</button>
+        </form>
     </div>
 
-    <form action="{{ url_for('index') }}">
-        <button type="submit" name="return" class="return-btn">Home</button>
-    </form>
+
 </body>
 </html>
 
