@@ -12,20 +12,6 @@ let seconds = window.secs;
 
 let theme = ""
 
-// ---Define the Canvases---
-// Back Canvas
-var backCanvas = document.getElementById("BackCanvas");
-var Bcnvs = backCanvas.getContext("2d");
-
-// Create Word Canvas
-var wordCanvas = document.getElementById("WordCanvas");
-var Wcnvs = wordCanvas.getContext("2d");
-
-// Timer Canvas
-var timerCanvas = document.getElementById("TimerCanvas");
-var Tcnvs = timerCanvas.getContext("2d");
-
-
 var drawingCanvas = document.getElementById("DrawingImage");
 
 // ---Functions---
@@ -38,16 +24,10 @@ function getCanvasCorners(canvas) {
 
 // Display word at Word Canvas - shows blanks or the full word depending on if guessed
 function displayWord(word, guessed) {
-    // Clear previous content
-    Wcnvs.clearRect(0, 0, 700, 75);
-    
-    // Redraw background
-    Wcnvs.fillStyle = "#ffd296";
-    Wcnvs.fillRect(0, 0, 700, 75);
     
     if (guessed) {
-        // If the player guessed correctly, show the complete word
-        addText(Wcnvs, "40", "center", word, 350, 50);
+        document.getElementById('word-display').style.fontSize = "60px";
+        document.getElementById('word-display').textContent = word;
     } else {
         // Otherwise show blanks representing each letter
         let blanks = "";
@@ -58,7 +38,12 @@ function displayWord(word, guessed) {
                 blanks += "_ ";  // Use underscore for letters
             }
         }
-        addText(Wcnvs, "40", "center", blanks, 350, 50);
+        if (word.length > 15) {
+            document.getElementById('word-display').style.fontSize = "40px";
+        } else {
+            document.getElementById('word-display').style.fontSize = "60px";
+        }
+        document.getElementById('word-display').textContent = blanks;
     }
 }
 
@@ -77,17 +62,13 @@ function back() {
 
 // Update Timer - counts down and formats display
 function runTimer() {
-    // Clear timer canvas and redraw background
-    Tcnvs.clearRect(0, 0, 250, 75);
-    Tcnvs.fillStyle = "#ffd296";
-    Tcnvs.fillRect(0, 0, 250, 75);
 
     // Timer logic - similar structure to drawing.js
     if (seconds == "0") {
         if (tenSeconds == "0") {
             if (minutes == "0") {
                 // Time's up
-                addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+                document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
                 stopTimer();
                 // Round ends when time runs out
                 
@@ -107,7 +88,7 @@ function runTimer() {
                 minutes = parseInt(minutes) - 1
                 minutes = minutes.toString()
 
-                addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+                document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
             }
         }
         else {
@@ -116,7 +97,7 @@ function runTimer() {
             tenSeconds = parseInt(tenSeconds) - 1
             tenSeconds = tenSeconds.toString()
 
-            addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+            document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
         }
     }
     else {
@@ -124,7 +105,7 @@ function runTimer() {
         seconds = parseInt(seconds) - 1
         seconds = seconds.toString()
 
-        addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+        document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
     }
 }
 
@@ -136,12 +117,6 @@ function stopTimer() {
 // Player has guessed correctly
 function correctGuess() {
     guessed = true
-    // Clear and reset word display
-    Wcnvs.clearRect(0, 0, 700, 75)
-    
-    // Background for Word Canvas
-    Wcnvs.fillStyle = "#ffd296";
-    Wcnvs.fillRect(0, 0, 700, 75)
     
     // Show the full word now that player has guessed it
     displayWord(word, true);
@@ -322,8 +297,8 @@ document.addEventListener("mousemove", function(event) {
     mouseY = event.clientY; // Update global Y coordinate
 });
 
-// Detect when mouse is held down or released
-backCanvas.addEventListener("mouseup", back);
+// Back Button event listener
+document.getElementById("back-button").addEventListener("mouseup", back);
 
 // Chat or Guessing
 document.getElementById("send-btn").addEventListener("click", sendMessage);
@@ -333,21 +308,6 @@ document.getElementById("message").addEventListener("keypress", function(event) 
 
 // ---Drawing to the screen---
 
-// Background for Back Canvas
-Bcnvs.fillStyle = "#f93cff";
-Bcnvs.fillRect(0, 0, 150, 75);
-
-// Background for Word Canvas
-Wcnvs.fillStyle = "#ffd296";
-Wcnvs.fillRect(0, 0, 700, 75)
-
-// Background for Timer Canvas
-Tcnvs.fillStyle = "#ffd296";
-Tcnvs.fillRect(0, 0, 250, 75)
-
-// Back Button Text
-addText(Bcnvs, "40", "center", "Back", 75, 50);
-
 // Timer Text 
-addText(Tcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
 

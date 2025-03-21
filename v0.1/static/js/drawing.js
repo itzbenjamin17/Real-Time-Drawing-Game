@@ -27,17 +27,6 @@ const eraser = new Image();
 eraser.src = "static/eraser.png";
 
 // ---Canvases---
-// Back Canvas
-var backCanvas = document.getElementById("BackCanvas");
-var Bcnvs = backCanvas.getContext("2d");
-
-// Create Word Canvas
-var wordCanvas = document.getElementById("WordCanvas");
-var Wcnvs = wordCanvas.getContext("2d");
-
-// Timer Canvas
-var timerCanvas = document.getElementById("TimerCanvas");
-var TIcnvs = timerCanvas.getContext("2d");
 
 // Create Drawing Canvas
 var drawingCanvas = document.getElementById("DrawingCanvas");
@@ -217,10 +206,6 @@ function toolsClick(mouseX) {
 
 // Update Timer - counts down from initial time and handles time formatting
 function runTimer() {
-    // Clear timer canvas and redraw background
-    TIcnvs.clearRect(0, 0, 250, 75);
-    TIcnvs.fillStyle = "#ffd296";
-    TIcnvs.fillRect(0, 0, 250, 75);
 
     // Timer logic - checks each component (seconds, ten seconds, minutes)
     // and updates them appropriately
@@ -228,7 +213,7 @@ function runTimer() {
         if (tenSeconds == "0") {
             if (minutes == "0") {
                 // Time's up - stop timer and handle end of round
-                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+                document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
                 stopTimer();
 
                 // Redirect to new round after 5 seconds
@@ -253,7 +238,7 @@ function runTimer() {
                 minutes = parseInt(minutes) - 1;
                 minutes = minutes.toString();
     
-                addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+                document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
             }
         }
         else {
@@ -262,7 +247,7 @@ function runTimer() {
             tenSeconds = parseInt(tenSeconds) - 1;
             tenSeconds = tenSeconds.toString();
 
-            addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+            document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
         }
     }
     else {
@@ -270,7 +255,7 @@ function runTimer() {
         seconds = parseInt(seconds) - 1;
         seconds = seconds.toString();
 
-        addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+        document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
     }
 }
 
@@ -383,7 +368,7 @@ socketio.on('chooseWords', (words) => {
             // Start the timer
             timer = setInterval(runTimer, 1000);
             // Display the word for the drawer
-            addText(Wcnvs, "50", "center", word, 350, 55);
+            document.getElementById('word-display').textContent = word;
             theme = word
         };
         wordList.appendChild(listItem);
@@ -454,25 +439,13 @@ drawingCanvas.addEventListener("mousemove", draw);
 document.addEventListener("mouseup", stopDrawing);
 document.addEventListener("mouseout", stopDrawing);
 
-// Back button event listener
-backCanvas.addEventListener("mouseup", back);
+// Back Button event listener
+document.getElementById("back-button").addEventListener("mouseup", back);
 
 // Tools event listener
 toolsCanvas.addEventListener("mouseup", function(e) { toolsClick(e.clientX); });
 
 // ---Drawing to the screen---
-
-// Background for Back Canvas
-Bcnvs.fillStyle = "#f93cff";
-Bcnvs.fillRect(0, 0, 150, 75);
-
-// Background for Word Canvas
-Wcnvs.fillStyle = "#ffd296";
-Wcnvs.fillRect(0, 0, 700, 75);
-
-// Background for Timer Canvas
-TIcnvs.fillStyle = "#ffd296";
-TIcnvs.fillRect(0, 0, 250, 75);
 
 // White Background for Drawing Canvas
 Dcnvs.fillStyle = "white";
@@ -507,9 +480,6 @@ drawCircle(580, "pink");
 drawCircle(670, "brown");
 drawCircle(760, "black");
 
-// Back Button Text
-addText(Bcnvs, "40", "center", "Back", 75, 50);
-
 // Timer Text 
-addText(TIcnvs, "40", "center", minutes + ":" + tenSeconds + seconds, 125, 50);
+document.getElementById("timer").textContent = minutes + ":" + tenSeconds + seconds;
 
