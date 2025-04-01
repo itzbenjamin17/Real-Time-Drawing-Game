@@ -232,7 +232,7 @@ def room():
         db.session.commit()
 
     player_names = room_obj.get_player_names()
-    socketio.emit("username", player_names)
+    socketio.emit("username", player_names, to=room)
 
     host = (room_obj.host == name)
 
@@ -299,7 +299,7 @@ def create_room():
 
 
 @app.route("/join-room", methods=["POST"])  # --- COMPLETE ---
-def join_room(room):
+def joining_room(room):
     return render_template("room.html", code=room, messages=Room.query.filter_by(code=room).first().get_messages())
 
 
@@ -400,7 +400,7 @@ def message(data):
 
     print("Content:", content)
 
-    socketio.emit("message", content)
+    socketio.emit("message", content, to=room)
     room_obj.add_message(content)
     db.session.commit()
     print("Messages:", room_obj.get_messages())
@@ -409,9 +409,9 @@ def message(data):
 
 @socketio.on("start")
 def startGame():
-    room = session.get('room')
+    room_code = session.get('room')
     name = session.get('name')
-    room_obj = Room.query.filter_by(code=room).first()
+    room_obj = Room.query.filter_by(code=room_code).first()
     if not room_obj:
         return
     # Only the host (first player) should trigger starting the round.
@@ -419,11 +419,14 @@ def startGame():
         return
     player_order = room_obj.get_player_names()
     room_obj.set_player_order(player_order)
+    print(f"Player Order: {player_order}")
     db.session.commit()
     for player in room_obj.players:
         if player.name == player_order[0]:
+            print(f"Triggered game for {player.name}!")
             socketio.emit('redirect', '/game', room=player.socket_id)
         else:
+            print(f"Triggered guess for {player.name}!")
             socketio.emit('redirect', '/guess', room=player.socket_id)
 
 
@@ -441,12 +444,13 @@ def sendWords():
             word = random.choice(word_list)
             words.append(word)
             word_list.remove(word)
-    socketio.emit('chooseWords', words)
+    socketio.emit('chooseWords', words, to=room)
 
 
 @socketio.on('wordSelected')
 def receiveWord(word):
-    socketio.emit('wordSelected', word)
+    room = session.get("room")
+    socketio.emit('wordSelected', word, to=room)
 
 
 @socketio.on("reported")
@@ -507,14 +511,25 @@ def connect(auth):
     db.session.commit()
 
     player_names = room_obj.get_player_names()
-    socketio.emit("username", player_names)
-    socketio.emit("individual_username", name, room=request.sid)
+    socketio.emit("username", player_names, to=room)
+    socketio.emit("individual_username", name, to=room)
+    socketio.emit("assigned_room", room, to=room)
     try:
-        socketio.emit("scores", room_obj.get_scores())
+        socketio.emit("scores", room_obj.get_scores(), to=room)
     except:
         scores = {player_name: 0 for player_name in player_names}
-        socketio.emit("scores", scores)
+        socketio.emit("scores", scores, to=room)
 
+@socketio.on("join")
+def join():
+    room = session.get("room")
+    session.modified = True
+    if room:
+        print(f"Player {request.sid} is joining {room}.")
+        join_room(room)
+    else:
+        print("Room does not exist.")
+    print(f"Player {request.sid} is in the rooms: {socketio.server.rooms(request.sid)}")
 
 @socketio.on("new_round")
 def new_round():
@@ -547,6 +562,7 @@ def new_round():
 
 @socketio.on("drawing_update")
 def drawing_update(data):
+    room = session.get("room")
     image_data = data.get("image", "")
     if not image_data.startswith("data:image/png;base64,"):
         print("Error: Invalid Base64 format!")
@@ -559,7 +575,7 @@ def drawing_update(data):
         print("Error decoding Base64:", error)
         return
 
-    socketio.emit("display_drawing", {"image": data["image"]})
+    socketio.emit("display_drawing", {"image": data["image"]}, to=room)
 
 
 @socketio.on("disconnect")
@@ -579,7 +595,7 @@ def disconnect():
             db.session.commit()
 
         send({"name": name, "message": "has left the room"}, to=room)
-        socketio.emit("update_players", room_obj.get_player_names())
+        socketio.emit("update_players", room_obj.get_player_names(), to=room)
 
 
 @socketio.on("calculate_score")
@@ -629,10 +645,10 @@ def handle_score_calculation(data):
     socketio.emit("score_updated", {
         "username": room_obj.get_player_names(),
         "score": scores
-    })
+    }, to=room)
 
     if room_obj.correct_guesses == (len(room_obj.players) - 1):
-        socketio.emit("all_guessed")
+        socketio.emit("all_guessed", to=room)
 
 
 @socketio.on("new_player_joined")
@@ -650,7 +666,7 @@ def new_player_joined():
     socketio.emit("score_updated", {
         "username": room_obj.get_player_names(),
         "score": room_obj.get_scores()
-    })
+    }, to=room)
 
 
 if __name__ == "__main__":
