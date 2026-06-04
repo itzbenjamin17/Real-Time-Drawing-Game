@@ -3,7 +3,6 @@
 
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
-from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import random
@@ -15,10 +14,8 @@ import json
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "test"
-app.config["SESSION_TYPE"] = "filesystem"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-Session(app)
 
 socketio = SocketIO(app)
 api = Api(app)
@@ -144,12 +141,6 @@ class Report(db.Model):
 @app.route("/", methods=["POST", "GET"])  # --- COMPLETE ---
 def index():
     session.clear()
-
-    try:
-        session["room"] = room
-        session["name"] = name
-    except:
-        pass
 
     if request.method == "POST":
         # Handle form submission (join or create room)
@@ -587,11 +578,8 @@ def disconnect():
     room_obj = Room.query.filter_by(code=room).first()
     if room_obj:
         player = Player.query.filter_by(name=name, room_id=room_obj.id).first()
-        if player:
-            db.session.delete(player)
-            room_obj.num_of_players -= 1
-            if room_obj.num_of_players <= 0:
-                db.session.delete(room_obj)
+        if player and player.socket_id == request.sid:
+            player.socket_id = None
             db.session.commit()
 
         send({"name": name, "message": "has left the room"}, to=room)

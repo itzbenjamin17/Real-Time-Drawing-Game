@@ -339,7 +339,7 @@ socketio.on("scores", (scores) => {
 
 socketio.on("score_updated", (data) => {
     usernames = data.username;
-    scores = data.score;
+    scores = data.score;
     console.log("score updated has ran")
     // NO idea who the current player is
     score1 = data.total;
